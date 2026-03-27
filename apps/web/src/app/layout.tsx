@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "otty-v2",
-  description: "LINE LIFF employee platform"
+  title: "Otty LINE Login Test",
+  description: "LINE LIFF login and profile verification test page"
 };
 
 type RootLayoutProps = Readonly<{

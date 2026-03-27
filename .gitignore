@@ -8,3 +8,6 @@ coverage
 .env
 .env.local
 .env.*.local
+*.tsbuildinfo
+localhost.pem
+localhost-key.pem

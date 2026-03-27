@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
+import { HttpError } from "../lib/http-error";
 import { logger } from "../lib/logger";
 
 export function errorHandler(
@@ -16,10 +17,18 @@ export function errorHandler(
     return;
   }
 
+  if (error instanceof HttpError) {
+    response.status(error.statusCode).json({
+      error: error.code,
+      message: error.message,
+      details: error.details
+    });
+    return;
+  }
+
   logger.error({ err: error }, "Unhandled application error");
 
   response.status(500).json({
     error: "InternalServerError"
   });
 }
-

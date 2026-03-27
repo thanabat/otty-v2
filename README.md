@@ -79,6 +79,37 @@ Example local URLs:
 
 - `web`: `http://localhost:3000`
 - `api`: `http://localhost:4000`
+- `liff proxy`: `https://localhost:9000` via `npm run dev:liff`
+
+## Local Runbook
+
+Create local env files before starting the project:
+
+- `apps/web/.env.local`
+- `apps/api/.env.local`
+
+You can create them from the app-specific templates:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/api/.env.example apps/api/.env.local
+```
+
+Fill in the real LINE values in the generated `.env.local` files. The repo uses the app-specific env files at runtime; there is no root `.env.example` anymore.
+
+Use these commands from the repo root:
+
+```bash
+npm run dev
+```
+
+Runs the `web` and `api` apps for normal local development.
+
+```bash
+npm run dev:liff
+```
+
+Runs the `web` and `api` apps plus `liff-cli serve` for HTTPS LIFF testing. The script reads `NEXT_PUBLIC_LIFF_ID` from `apps/web/.env.local`.
 
 ## Deployment Expectation
 
@@ -168,12 +199,31 @@ Current repository state:
 - `apps/web` bootstrapped with a basic Next.js entry page
 - `apps/api` bootstrapped with Express and health endpoints
 - `packages/shared` created for shared constants and types
-- feature modules are not implemented yet
+- initial LINE login test flow added:
+  - `web` initializes LIFF, logs the user in, and reads the client profile
+  - `api` verifies the LIFF access token with LINE and returns a trusted profile payload
+
+## LINE Login Test Flow
+
+Use the current implementation to verify your LINE setup end to end.
+
+1. Create or open a LIFF app in the LINE Developers Console.
+2. Set the LIFF endpoint URL to `http://localhost:3000`.
+3. Enable at least the `profile` scope for the LIFF app.
+4. Put the LIFF ID into `apps/web/.env.local` as `NEXT_PUBLIC_LIFF_ID`.
+5. Run `npm run dev`.
+6. Open `http://localhost:3000`, login with LINE, and confirm that both the client profile and the verified API profile are shown.
+
+If you want the HTTPS LIFF proxy for local testing, run:
+
+```bash
+npm run dev:liff
+```
+
+This script starts the workspace dev servers and `liff-cli serve` together, reading the LIFF ID from `apps/web/.env.local`.
 
 Next recommended step:
 
-1. run `npm install`
-2. copy `apps/web/.env.example` and `apps/api/.env.example` into local env files
-3. run `npm run dev`
-4. verify `http://localhost:3000` and `http://localhost:4000/health`
-5. start feature implementation from auth and employee profile
+1. persist the verified LINE user into your employee/session model
+2. exchange the verified LINE identity for an app JWT or session
+3. move the login test page into a dedicated auth module
