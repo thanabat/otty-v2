@@ -36,7 +36,7 @@ Recommended stack:
 - backend: `Express` or `Fastify` + `TypeScript`
 - database: `MongoDB` + `Mongoose`
 - shared validation/types: `Zod`
-- workspace tooling: `pnpm workspaces`
+- workspace tooling: `npm workspaces`
 
 ## Why Two Apps
 
@@ -66,14 +66,14 @@ Even with two apps, local development should feel like one project.
 The root workspace is expected to provide commands such as:
 
 ```bash
-pnpm install
-pnpm dev
-pnpm build
-pnpm lint
-pnpm test
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run test
 ```
 
-`pnpm dev` should run both `web` and `api` together from the repo root.
+`npm run dev` should run both `web` and `api` together from the repo root.
 
 Example local URLs:
 
@@ -164,14 +164,16 @@ When generating code for this repository:
 
 Current repository state:
 
-- documentation and architecture planning only
-- implementation scaffold not created yet
+- monorepo scaffold created
+- `apps/web` bootstrapped with a basic Next.js entry page
+- `apps/api` bootstrapped with Express and health endpoints
+- `packages/shared` created for shared constants and types
+- feature modules are not implemented yet
 
 Next recommended step:
 
-1. scaffold the monorepo
-2. create `web` and `api`
-3. add shared package
-4. wire env/config
-5. implement LIFF login flow
-6. implement employee profile, workday, and biz-card modules
+1. run `npm install`
+2. copy `apps/web/.env.example` and `apps/api/.env.example` into local env files
+3. run `npm run dev`
+4. verify `http://localhost:3000` and `http://localhost:4000/health`
+5. start feature implementation from auth and employee profile

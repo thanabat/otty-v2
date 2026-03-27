@@ -42,7 +42,7 @@ Primary business capabilities:
 
 ### Workspace
 
-- `pnpm workspaces`
+- `npm workspaces`
 
 ## Repository Layout
 
@@ -108,7 +108,7 @@ Responsibilities:
 Run both apps together from the root workspace:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Expected local ports:
@@ -442,16 +442,15 @@ The monorepo root should own cross-app tooling and scripts.
 Expected root files:
 
 - `package.json`
-- `pnpm-workspace.yaml`
 - `tsconfig.base.json`
 - `.env.example`
 
 Expected root scripts:
 
-- `pnpm dev` to run `web` and `api` together
-- `pnpm build` to build all packages
-- `pnpm lint` to lint all packages
-- `pnpm test` to run all tests
+- `npm run dev` to run `web` and `api` together
+- `npm run build` to build all packages
+- `npm run lint` to lint all packages
+- `npm run test` to run all tests
 
 Suggested package naming:
 
@@ -536,15 +535,16 @@ Suggested package naming:
 
 ## Recommended Next Build Step
 
-The next implementation step should be scaffolding the monorepo with:
+The monorepo scaffold should exist with:
 
 - `apps/web` using `Next.js`
 - `apps/api` using `Express`
 - `packages/shared` for schemas and types
 
-Then implement the smallest end-to-end vertical slice:
+After scaffolding, verify the base runtime first:
 
-1. LIFF login
-2. backend auth verification
-3. `GET /me/profile`
-4. profile page in LIFF
+1. install dependencies
+2. boot `web` and `api` together from the root workspace
+3. confirm the web landing page loads
+4. confirm `GET /health` responds from the API
+5. begin feature work with LIFF auth and employee profile
