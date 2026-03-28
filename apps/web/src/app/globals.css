@@ -641,8 +641,12 @@ li + li {
   inset: 0;
   z-index: 30;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .profile-editor-overlay__backdrop {
@@ -655,13 +659,15 @@ li + li {
 .profile-editor-sheet {
   position: relative;
   width: min(100%, 520px);
-  margin: 0 12px 12px;
+  max-height: calc(100dvh - 24px);
   padding: 24px;
   border-radius: 28px;
   background: rgba(29, 29, 29, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
   color: #f7f4ef;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .profile-editor-sheet h2 {
