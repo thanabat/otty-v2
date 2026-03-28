@@ -33,6 +33,11 @@ body {
   min-height: 100vh;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .page-shell {
   width: min(1120px, calc(100vw - 32px));
   margin: 0 auto;
@@ -212,6 +217,11 @@ li + li {
   box-shadow: none;
 }
 
+.action-button--disabled-link {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
 .action-button--ghost {
   background: transparent;
   color: var(--muted);
@@ -238,6 +248,11 @@ li + li {
 .callout--error {
   background: rgba(184, 50, 50, 0.08);
   color: var(--danger);
+}
+
+.callout__meta {
+  margin-top: 8px;
+  font-weight: 700;
 }
 
 .profile-card {
@@ -287,6 +302,44 @@ li + li {
 .profile-card__message {
   margin-top: 8px;
   color: #3a3129;
+}
+
+.employee-summary {
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5)),
+    rgba(255, 198, 115, 0.14);
+}
+
+.employee-summary__name,
+.employee-summary__nickname {
+  margin: 0;
+}
+
+.employee-summary__name {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.employee-summary__nickname {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.flag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.inline-link {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .json-block {

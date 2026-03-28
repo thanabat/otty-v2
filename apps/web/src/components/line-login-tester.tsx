@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type {
   LineUserProfile,
@@ -139,12 +140,12 @@ export function LineLoginTester() {
     <main className="page-shell">
       <section className="hero-card hero-card--split">
         <div>
-          <p className="eyebrow">LINE Login Test</p>
-          <h1>Login ผ่าน LINE แล้วดู profile ได้ทันที</h1>
+          <p className="eyebrow">Step 1 • LINE Login</p>
+          <h1>เช็ก LINE login ก่อน แล้วค่อยไปดู employee profile</h1>
           <p className="lead">
-            หน้านี้ใช้ LIFF สำหรับ sign-in ฝั่งเว็บ และส่ง access token ไปให้
-            API ตรวจสอบกับ LINE ก่อนคืน profile กลับมาเพื่อทดสอบ flow จริง
-            ของโปรเจกต์นี้
+            หน้านี้ใช้ LIFF สำหรับ sign-in และแสดงข้อมูลจาก LINE โดยตรงก่อน
+            เมื่อแน่ใจว่า login สำเร็จแล้ว ค่อยกดไปหน้า profile เพื่อ lookup
+            ข้อมูลพนักงานจาก collection `users`
           </p>
         </div>
 
@@ -183,6 +184,20 @@ export function LineLoginTester() {
             >
               Refresh state
             </button>
+            <Link
+              aria-disabled={!state.isLoggedIn}
+              className={`action-button action-button--secondary${
+                state.isLoggedIn ? "" : " action-button--disabled-link"
+              }`}
+              href={state.isLoggedIn ? "/profile" : "#"}
+              onClick={(event) => {
+                if (!state.isLoggedIn) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              View Profile
+            </Link>
             {!state.isInClient && state.isLoggedIn ? (
               <button
                 className="action-button action-button--ghost"
@@ -217,8 +232,8 @@ export function LineLoginTester() {
             <p className="callout callout--error">{state.error}</p>
           ) : (
             <p className="callout">
-              ต้องตั้ง `NEXT_PUBLIC_LIFF_ID` และเปิด scope `profile` ใน LIFF
-              Console ก่อน จึงจะดึง profile ได้
+              Step นี้จบเมื่อเห็น LINE profile ด้านล่างและปุ่ม `View Profile`
+              ใช้งานได้
             </p>
           )}
         </article>

@@ -5,5 +5,9 @@ export interface HealthSnapshot {
   service: "api";
   environment: AppEnvironment;
   timestamp: string;
+  database: {
+    status: "disconnected" | "connected" | "connecting" | "disconnecting";
+    name?: string;
+    host?: string;
+  };
 }
-

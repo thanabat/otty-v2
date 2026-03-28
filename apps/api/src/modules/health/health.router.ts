@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getHealthSnapshot } from "./health.service";
+import { getHealthSnapshot, getReadinessSnapshot } from "./health.service";
 
 export const healthRouter = Router();
 
@@ -8,8 +8,7 @@ healthRouter.get("/health", (_request, response) => {
 });
 
 healthRouter.get("/ready", (_request, response) => {
-  response.json({
-    ready: true
-  });
-});
+  const snapshot = getReadinessSnapshot();
 
+  response.status(snapshot.ready ? 200 : 503).json(snapshot);
+});

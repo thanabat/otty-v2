@@ -1,3 +1,5 @@
+import type { UserRecord } from "./user";
+
 export interface LineProfileRequest {
   accessToken: string;
 }
@@ -16,4 +18,14 @@ export interface VerifiedLineProfileResponse {
     expiresIn: number;
     scope: string[];
   };
+}
+
+export interface LiffLoginResponse {
+  lineProfile: LineUserProfile;
+  token: {
+    channelId: string;
+    expiresIn: number;
+    scope: string[];
+  };
+  user: UserRecord;
 }

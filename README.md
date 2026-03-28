@@ -111,6 +111,13 @@ npm run dev:liff
 
 Runs the `web` and `api` apps plus `liff-cli serve` for HTTPS LIFF testing. The script reads `NEXT_PUBLIC_LIFF_ID` from `apps/web/.env.local`.
 
+The API connects to MongoDB on startup using `MONGODB_URI` from `apps/api/.env.local`. You can check the runtime status with:
+
+```bash
+curl http://localhost:4000/health
+curl http://localhost:4000/ready
+```
+
 ## Deployment Expectation
 
 Deploy the two apps as separate services:
@@ -212,7 +219,12 @@ Use the current implementation to verify your LINE setup end to end.
 3. Enable at least the `profile` scope for the LIFF app.
 4. Put the LIFF ID into `apps/web/.env.local` as `NEXT_PUBLIC_LIFF_ID`.
 5. Run `npm run dev`.
-6. Open `http://localhost:3000`, login with LINE, and confirm that both the client profile and the verified API profile are shown.
+6. Open `http://localhost:3000`. The app redirects to `/profile`, then login with LINE and confirm that the employee profile is resolved from the `users` collection through `line_user_id`.
+
+Useful local routes:
+
+- `/profile`: primary LIFF profile page backed by MongoDB `users`
+- `/debug/line`: debug page for raw LIFF token/profile inspection
 
 If you want the HTTPS LIFF proxy for local testing, run:
 

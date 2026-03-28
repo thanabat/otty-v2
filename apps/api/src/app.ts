@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/error-handler";
 import { notFoundHandler } from "./middlewares/not-found";
 import { authRouter } from "./modules/auth/auth.router";
 import { healthRouter } from "./modules/health/health.router";
+import { usersRouter } from "./modules/users/users.router";
 
 export function createApp() {
   const app = express();
@@ -49,6 +50,7 @@ export function createApp() {
 
   app.use(authRouter);
   app.use(healthRouter);
+  app.use(usersRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
