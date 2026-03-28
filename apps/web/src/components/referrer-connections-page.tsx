@@ -10,6 +10,7 @@ import type {
 import { ConnectionListCard } from "./connection-list-card";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
+import { SecondaryPageNav } from "./secondary-page-nav";
 
 type ReferrerConnectionsPageProps = {
   referrer?: string;
@@ -109,20 +110,12 @@ export function ReferrerConnectionsPage({
     return (
       <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
+          <SecondaryPageNav fallbackHref="/profile" />
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Connections</p>
             <h1>Unable to load connections</h1>
             <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
           </section>
-
-          <div className="button-row button-row--compact button-row--toolbar">
-            <Link
-              className="action-button action-button--secondary-dark"
-              href="/profile"
-            >
-              Back To Profile
-            </Link>
-          </div>
         </div>
       </main>
     );
@@ -134,6 +127,7 @@ export function ReferrerConnectionsPage({
   return (
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
+        <SecondaryPageNav fallbackHref="/profile" />
         {state.referrerProfile ? (
           <section className="connection-card connection-card--dark connection-card--compact connection-card--profile">
             <p className="connection-card__eyebrow">Referrer</p>
@@ -177,15 +171,6 @@ export function ReferrerConnectionsPage({
             ) : null}
           </section>
         ) : null}
-
-        <div className="button-row button-row--compact button-row--toolbar">
-          <Link
-            className="action-button action-button--secondary-dark"
-            href="/profile"
-          >
-            Back To Profile
-          </Link>
-        </div>
 
         <section className="connections-list">
           {data.items.map((item) => (

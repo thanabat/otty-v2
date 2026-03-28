@@ -6,6 +6,7 @@ import type { UserYearConnectionsResponse } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
+import { SecondaryPageNav } from "./secondary-page-nav";
 
 type JoiningYearConnectionsPageProps = {
   year: number;
@@ -85,20 +86,12 @@ export function JoiningYearConnectionsPage({
     return (
       <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
+          <SecondaryPageNav fallbackHref="/profile" />
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Joining Year</p>
             <h1>Unable to load cohort</h1>
             <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
           </section>
-
-          <div className="button-row button-row--compact button-row--toolbar">
-            <Link
-              className="action-button action-button--secondary-dark"
-              href="/profile"
-            >
-              Back To Profile
-            </Link>
-          </div>
         </div>
       </main>
     );
@@ -110,6 +103,7 @@ export function JoiningYearConnectionsPage({
   return (
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
+        <SecondaryPageNav fallbackHref="/profile" />
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Joining Year</p>
           <h1>{data.joiningYear} Cohort</h1>
@@ -122,15 +116,6 @@ export function JoiningYearConnectionsPage({
             </p>
           ) : null}
         </section>
-
-        <div className="button-row button-row--compact button-row--toolbar">
-          <Link
-            className="action-button action-button--secondary-dark"
-            href="/profile"
-          >
-            Back To Profile
-          </Link>
-        </div>
 
         <section className="connections-list">
           {data.items.map((item) => (

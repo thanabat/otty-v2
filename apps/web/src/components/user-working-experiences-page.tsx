@@ -9,6 +9,7 @@ import type {
 } from "@otty/shared";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
+import { SecondaryPageNav } from "./secondary-page-nav";
 
 type UserWorkingExperiencesPageProps = {
   userId: string;
@@ -276,20 +277,12 @@ export function UserWorkingExperiencesPage({
     return (
       <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
+          <SecondaryPageNav fallbackHref={backHref} />
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Working Experiences</p>
             <h1>Unable to load work history</h1>
             <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
           </section>
-
-          <div className="button-row button-row--compact">
-            <Link
-              className="action-button action-button--secondary-dark"
-              href={backHref}
-            >
-              Back To Profile
-            </Link>
-          </div>
         </div>
       </main>
     );
@@ -298,19 +291,14 @@ export function UserWorkingExperiencesPage({
   return (
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
+        <SecondaryPageNav fallbackHref={backHref} />
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Working Experiences</p>
           <h1>{displayName}</h1>
           <p className="lead lead--dark">{`${experiences.length} Working Experience(s)`}</p>
         </section>
 
-        <div className="button-row button-row--compact button-row--split button-row--toolbar">
-          <Link
-            className="action-button action-button--secondary-dark"
-            href={backHref}
-          >
-            Back To Profile
-          </Link>
+        <div className="button-row button-row--compact button-row--toolbar button-row--end">
           {isSelf ? (
             <button className="action-button" onClick={openCreateEditor} type="button">
               Add Experience

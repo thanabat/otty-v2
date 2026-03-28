@@ -392,9 +392,39 @@ li + li {
   align-items: center;
 }
 
+.button-row--end {
+  justify-content: flex-end;
+}
+
 .button-row--toolbar {
   margin-top: 12px;
   margin-bottom: 20px;
+}
+
+.secondary-page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.secondary-page-nav__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f7f4ef;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.secondary-page-nav__icon {
+  width: 22px;
+  height: 22px;
 }
 
 .button-row--stack {

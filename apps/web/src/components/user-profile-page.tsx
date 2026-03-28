@@ -6,6 +6,7 @@ import type { UserRecord } from "@otty/shared";
 import { ProfileLoadingState } from "./loading-state";
 import { ProfileCardView } from "./profile-card-view";
 import { ensureLiffSession } from "../lib/liff-auth";
+import { SecondaryPageNav } from "./secondary-page-nav";
 
 type UserProfilePageProps = {
   userId: string;
@@ -158,31 +159,16 @@ export function UserProfilePage({
           <p className="lead">{state.error ?? "Unknown error"}</p>
         </section>
 
-        <div className="button-row button-row--compact">
-          <Link
-            className="action-button action-button--secondary"
-            href={backHref}
-          >
-            Back
-          </Link>
-        </div>
+        <SecondaryPageNav fallbackHref={backHref} />
       </main>
     );
   }
 
-  const footer = (
-    <div className="button-row button-row--stack">
-      <Link
-        className="action-button action-button--secondary phone-profile-card__action phone-profile-card__action--centered"
-        href={backHref}
-      >
-        Back
-      </Link>
-    </div>
-  );
-
   return (
     <main className="profile-stage">
+      <div className="page-shell">
+        <SecondaryPageNav fallbackHref={backHref} />
+      </div>
       <ProfileCardView
         currentSiteHref={
           state.user.workingInfo?.currentSite?.trim() ||
@@ -195,7 +181,6 @@ export function UserProfilePage({
             : null
         }
         displayName={state.user.personalInfo?.fullname || "Employee"}
-        footer={footer}
         joiningYearHref={
           state.user.workingInfo?.joiningYear
             ? `/years/${state.user.workingInfo.joiningYear}`

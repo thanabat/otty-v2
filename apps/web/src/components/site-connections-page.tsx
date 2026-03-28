@@ -6,6 +6,7 @@ import type { UserSiteConnectionsResponse } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
+import { SecondaryPageNav } from "./secondary-page-nav";
 
 type SiteConnectionsPageProps = {
   site: string;
@@ -87,20 +88,12 @@ export function SiteConnectionsPage({
     return (
       <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
+          <SecondaryPageNav fallbackHref="/profile" />
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Current Site</p>
             <h1>Unable to load site connections</h1>
             <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
           </section>
-
-          <div className="button-row button-row--compact button-row--toolbar">
-            <Link
-              className="action-button action-button--secondary-dark"
-              href="/profile"
-            >
-              Back To Profile
-            </Link>
-          </div>
         </div>
       </main>
     );
@@ -112,6 +105,7 @@ export function SiteConnectionsPage({
   return (
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
+        <SecondaryPageNav fallbackHref="/profile" />
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Current Site</p>
           <h1>{data.site} Team</h1>
@@ -124,15 +118,6 @@ export function SiteConnectionsPage({
             </p>
           ) : null}
         </section>
-
-        <div className="button-row button-row--compact button-row--toolbar">
-          <Link
-            className="action-button action-button--secondary-dark"
-            href="/profile"
-          >
-            Back To Profile
-          </Link>
-        </div>
 
         <section className="connections-list">
           {data.items.map((item) => (
