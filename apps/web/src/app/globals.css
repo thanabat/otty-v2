@@ -118,6 +118,13 @@ img {
   margin-bottom: 20px;
 }
 
+.hero-card--dark {
+  background: rgba(29, 29, 29, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+  color: #f7f4ef;
+}
+
 .hero-card__main {
   display: flex;
   flex-direction: column;
@@ -156,6 +163,10 @@ h1 {
 .lead--compact {
   margin-top: 12px;
   max-width: none;
+}
+
+.lead--dark {
+  color: rgba(247, 244, 239, 0.66);
 }
 
 .info-grid {
@@ -314,6 +325,13 @@ li + li {
 .action-button--secondary {
   background: rgba(29, 26, 23, 0.08);
   color: var(--text);
+  box-shadow: none;
+}
+
+.action-button--secondary-dark {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f7f4ef;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
 }
 
@@ -641,6 +659,19 @@ li + li {
   border-color: rgba(6, 199, 85, 0.22);
 }
 
+.connection-card--dark {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(29, 29, 29, 0.94);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.28);
+  color: #f7f4ef;
+}
+
+.connection-card--dark:hover {
+  border-color: rgba(6, 199, 85, 0.28);
+}
+
 .connection-card__name {
   margin: 0;
   font-size: 1.2rem;
@@ -651,6 +682,10 @@ li + li {
   margin: 0;
   color: var(--muted);
   font-size: 0.96rem;
+}
+
+.connection-card--dark .connection-card__meta {
+  color: rgba(247, 244, 239, 0.62);
 }
 
 .phone-profile-card__description {

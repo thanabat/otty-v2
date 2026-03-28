@@ -67,66 +67,84 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
 
   if (state.isLoading) {
     return (
-      <main className="page-shell page-shell--connections">
-        <section className="hero-card">
-          <p className="eyebrow">Current Site</p>
-          <h1>Loading site connections...</h1>
-          <p className="lead">กำลังตรวจสอบ LINE login และโหลดรายชื่อใน site เดียวกัน</p>
-        </section>
+      <main className="profile-stage">
+        <div className="page-shell page-shell--connections">
+          <section className="hero-card hero-card--dark">
+            <p className="eyebrow">Current Site</p>
+            <h1>Loading site connections...</h1>
+            <p className="lead lead--dark">
+              กำลังตรวจสอบ LINE login และโหลดรายชื่อใน site เดียวกัน
+            </p>
+          </section>
+        </div>
       </main>
     );
   }
 
   if (state.error || !state.data) {
     return (
-      <main className="page-shell page-shell--connections">
-        <section className="hero-card">
-          <p className="eyebrow">Current Site</p>
-          <h1>Unable to load site connections</h1>
-          <p className="lead">{state.error ?? "Unknown error"}</p>
-        </section>
+      <main className="profile-stage">
+        <div className="page-shell page-shell--connections">
+          <section className="hero-card hero-card--dark">
+            <p className="eyebrow">Current Site</p>
+            <h1>Unable to load site connections</h1>
+            <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
+          </section>
 
-        <div className="button-row button-row--compact">
-          <Link className="action-button action-button--secondary" href="/profile">
-            Back To Profile
-          </Link>
+          <div className="button-row button-row--compact">
+            <Link
+              className="action-button action-button--secondary-dark"
+              href="/profile"
+            >
+              Back To Profile
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="page-shell page-shell--connections">
-      <section className="hero-card hero-card--connections">
-        <p className="eyebrow">Current Site</p>
-        <h1>{state.data.site} Team</h1>
-        <p className="lead">พบ {state.data.total} คนใน current site เดียวกัน</p>
-      </section>
+    <main className="profile-stage">
+      <div className="page-shell page-shell--connections">
+        <section className="hero-card hero-card--dark hero-card--connections">
+          <p className="eyebrow">Current Site</p>
+          <h1>{state.data.site} Team</h1>
+          <p className="lead lead--dark">
+            พบ {state.data.total} คนใน current site เดียวกัน
+          </p>
+        </section>
 
-      <div className="button-row button-row--compact">
-        <Link className="action-button action-button--secondary" href="/profile">
-          Back To Profile
-        </Link>
-      </div>
-
-      <section className="connections-list">
-        {state.data.items.map((item) => (
+        <div className="button-row button-row--compact">
           <Link
-            className="connection-card"
-            href={`/profile/${item.id}?site=${encodeURIComponent(state.data!.site)}`}
-            key={item.id}
+            className="action-button action-button--secondary-dark"
+            href="/profile"
           >
-            <p className="connection-card__name">{item.fullname || "Unknown user"}</p>
-            <p className="connection-card__meta">
-              Nickname: {item.nickname || "-"}
-            </p>
-            <p className="connection-card__meta">Title: {item.title || "-"}</p>
-            <p className="connection-card__meta">
-              Joining Year: {item.joiningYear ?? "-"}
-            </p>
+            Back To Profile
           </Link>
-        ))}
-      </section>
+        </div>
+
+        <section className="connections-list">
+          {state.data.items.map((item) => (
+            <Link
+              className="connection-card connection-card--dark"
+              href={`/profile/${item.id}?site=${encodeURIComponent(state.data!.site)}`}
+              key={item.id}
+            >
+              <p className="connection-card__name">
+                {item.fullname || "Unknown user"}
+              </p>
+              <p className="connection-card__meta">
+                Nickname: {item.nickname || "-"}
+              </p>
+              <p className="connection-card__meta">Title: {item.title || "-"}</p>
+              <p className="connection-card__meta">
+                Joining Year: {item.joiningYear ?? "-"}
+              </p>
+            </Link>
+          ))}
+        </section>
+      </div>
     </main>
   );
 }
