@@ -301,9 +301,7 @@ export function UserWorkingExperiencesPage({
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Working Experiences</p>
           <h1>{displayName}</h1>
-          <p className="lead lead--dark">
-            มีทั้งหมด {experiences.length} ช่วงการทำงานที่บันทึกไว้
-          </p>
+          <p className="lead lead--dark">{`${experiences.length} Working Experience(s)`}</p>
         </section>
 
         <div className="button-row button-row--compact button-row--split button-row--toolbar">
