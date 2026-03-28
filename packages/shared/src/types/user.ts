@@ -52,6 +52,7 @@ export interface UserConnectionItem {
   nickname?: string | null;
   title?: string | null;
   joiningYear?: number | null;
+  currentSite?: string | null;
 }
 
 export interface UserConnectionsResponse {
@@ -73,6 +74,8 @@ export interface UserYearConnectionsResponse {
   items: UserConnectionItem[];
   total: number;
   limit: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface UserProfileUpdateInput {

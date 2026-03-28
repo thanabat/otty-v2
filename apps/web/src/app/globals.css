@@ -688,6 +688,20 @@ li + li {
   color: rgba(247, 244, 239, 0.62);
 }
 
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.pagination-row__label {
+  color: rgba(247, 244, 239, 0.62);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
 .phone-profile-card__description {
   margin-top: 16px;
   color: rgba(247, 244, 239, 0.62);
@@ -954,5 +968,10 @@ pre {
 
   .profile-detail-card__list--two-column {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pagination-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

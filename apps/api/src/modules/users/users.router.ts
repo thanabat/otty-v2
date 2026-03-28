@@ -10,7 +10,8 @@ import {
 } from "./users.service";
 
 const listUsersQuerySchema = z.object({
-  limit: z.coerce.number().int().positive().max(100).default(20)
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  page: z.coerce.number().int().positive().default(1)
 });
 
 const lineUserParamsSchema = z.object({
@@ -83,7 +84,11 @@ usersRouter.get("/users/joining-year/:year", async (request, response, next) => 
   try {
     const params = joiningYearParamsSchema.parse(request.params);
     const query = listUsersQuerySchema.parse(request.query);
-    const payload = await listUsersByJoiningYear(params.year, query.limit);
+    const payload = await listUsersByJoiningYear(
+      params.year,
+      query.limit,
+      query.page
+    );
 
     response.json(payload);
   } catch (error) {

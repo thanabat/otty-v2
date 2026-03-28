@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserSiteConnectionsResponse } from "@otty/shared";
+import { ConnectionListCard } from "./connection-list-card";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type SiteConnectionsPageProps = {
@@ -126,22 +127,11 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
 
         <section className="connections-list">
           {state.data.items.map((item) => (
-            <Link
-              className="connection-card connection-card--dark"
+            <ConnectionListCard
               href={`/profile/${item.id}?site=${encodeURIComponent(state.data!.site)}`}
+              item={item}
               key={item.id}
-            >
-              <p className="connection-card__name">
-                {item.fullname || "Unknown user"}
-              </p>
-              <p className="connection-card__meta">
-                Nickname: {item.nickname || "-"}
-              </p>
-              <p className="connection-card__meta">Title: {item.title || "-"}</p>
-              <p className="connection-card__meta">
-                Joining Year: {item.joiningYear ?? "-"}
-              </p>
-            </Link>
+            />
           ))}
         </section>
       </div>

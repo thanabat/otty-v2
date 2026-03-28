@@ -86,7 +86,9 @@ export async function listUsersByReferrer(
     "personal_info.fullname": 1,
     "personal_info.nickname": 1,
     "working_info.title": 1,
-    "working_info.joining_year": 1
+    "working_info.joining_year": 1,
+    "working_info.current_site": 1,
+    "working_info.current_site_other": 1
   } as const;
 
   const [items, total] = await Promise.all([
@@ -108,6 +110,8 @@ export async function listUsersByReferrer(
           working_info?: {
             title?: string | null;
             joining_year?: number | null;
+            current_site?: string | null;
+            current_site_other?: string | null;
           };
         }>
       >(),
@@ -123,7 +127,11 @@ export async function listUsersByReferrer(
       fullname: user.personal_info?.fullname ?? null,
       nickname: user.personal_info?.nickname ?? null,
       title: user.working_info?.title ?? null,
-      joiningYear: user.working_info?.joining_year ?? null
+      joiningYear: user.working_info?.joining_year ?? null,
+      currentSite:
+        user.working_info?.current_site ??
+        user.working_info?.current_site_other ??
+        null
     })),
     total,
     limit: normalizedLimit
@@ -151,7 +159,9 @@ export async function listUsersByCurrentSite(
     "personal_info.fullname": 1,
     "personal_info.nickname": 1,
     "working_info.title": 1,
-    "working_info.joining_year": 1
+    "working_info.joining_year": 1,
+    "working_info.current_site": 1,
+    "working_info.current_site_other": 1
   } as const;
 
   const filter = {
@@ -179,6 +189,8 @@ export async function listUsersByCurrentSite(
           working_info?: {
             title?: string | null;
             joining_year?: number | null;
+            current_site?: string | null;
+            current_site_other?: string | null;
           };
         }>
       >(),
@@ -192,7 +204,11 @@ export async function listUsersByCurrentSite(
       fullname: user.personal_info?.fullname ?? null,
       nickname: user.personal_info?.nickname ?? null,
       title: user.working_info?.title ?? null,
-      joiningYear: user.working_info?.joining_year ?? null
+      joiningYear: user.working_info?.joining_year ?? null,
+      currentSite:
+        user.working_info?.current_site ??
+        user.working_info?.current_site_other ??
+        null
     })),
     total,
     limit: normalizedLimit
@@ -201,7 +217,8 @@ export async function listUsersByCurrentSite(
 
 export async function listUsersByJoiningYear(
   joiningYear: number,
-  limit: number
+  limit: number,
+  page: number
 ): Promise<UserYearConnectionsResponse> {
   if (!Number.isInteger(joiningYear) || joiningYear < 1900 || joiningYear > 3000) {
     throw new HttpError({
@@ -212,12 +229,16 @@ export async function listUsersByJoiningYear(
   }
 
   const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const normalizedPage = Math.max(page, 1);
+  const skip = (normalizedPage - 1) * normalizedLimit;
   const projection = {
     _id: 1,
     "personal_info.fullname": 1,
     "personal_info.nickname": 1,
     "working_info.title": 1,
-    "working_info.joining_year": 1
+    "working_info.joining_year": 1,
+    "working_info.current_site": 1,
+    "working_info.current_site_other": 1
   } as const;
 
   const [items, total] = await Promise.all([
@@ -228,6 +249,7 @@ export async function listUsersByJoiningYear(
       projection
     )
       .sort({ "personal_info.fullname": 1, _id: 1 })
+      .skip(skip)
       .limit(normalizedLimit)
       .lean<
         Array<{
@@ -239,6 +261,8 @@ export async function listUsersByJoiningYear(
           working_info?: {
             title?: string | null;
             joining_year?: number | null;
+            current_site?: string | null;
+            current_site_other?: string | null;
           };
         }>
       >(),
@@ -254,10 +278,16 @@ export async function listUsersByJoiningYear(
       fullname: user.personal_info?.fullname ?? null,
       nickname: user.personal_info?.nickname ?? null,
       title: user.working_info?.title ?? null,
-      joiningYear: user.working_info?.joining_year ?? null
+      joiningYear: user.working_info?.joining_year ?? null,
+      currentSite:
+        user.working_info?.current_site ??
+        user.working_info?.current_site_other ??
+        null
     })),
     total,
-    limit: normalizedLimit
+    limit: normalizedLimit,
+    page: normalizedPage,
+    totalPages: Math.max(Math.ceil(total / normalizedLimit), 1)
   };
 }
 

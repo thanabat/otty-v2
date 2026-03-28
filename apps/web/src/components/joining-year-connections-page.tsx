@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserYearConnectionsResponse } from "@otty/shared";
+import { ConnectionListCard } from "./connection-list-card";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type JoiningYearConnectionsPageProps = {
   year: number;
+  currentPage: number;
 };
 
 type JoiningYearConnectionsState = {
@@ -16,7 +18,8 @@ type JoiningYearConnectionsState = {
 };
 
 export function JoiningYearConnectionsPage({
-  year
+  year,
+  currentPage
 }: JoiningYearConnectionsPageProps) {
   const [state, setState] = useState<JoiningYearConnectionsState>({
     isLoading: true,
@@ -29,8 +32,8 @@ export function JoiningYearConnectionsPage({
 
     async function bootstrap() {
       try {
-        await ensureLiffSession(`/years/${year}`);
-        const data = await fetchUsersByJoiningYear(year);
+        await ensureLiffSession(`/years/${year}?page=${currentPage}`);
+        const data = await fetchUsersByJoiningYear(year, currentPage);
 
         if (!cancelled) {
           setState({
@@ -65,7 +68,7 @@ export function JoiningYearConnectionsPage({
     return () => {
       cancelled = true;
     };
-  }, [year]);
+  }, [currentPage, year]);
 
   if (state.isLoading) {
     return (
@@ -115,6 +118,9 @@ export function JoiningYearConnectionsPage({
           <p className="lead lead--dark">
             พบ {state.data.total} คนที่เข้าร่วมในปีเดียวกัน
           </p>
+          <p className="lead lead--dark lead--compact">
+            Page {state.data.page} of {state.data.totalPages}
+          </p>
         </section>
 
         <div className="button-row button-row--compact">
@@ -128,34 +134,58 @@ export function JoiningYearConnectionsPage({
 
         <section className="connections-list">
           {state.data.items.map((item) => (
-            <Link
-              className="connection-card connection-card--dark"
+            <ConnectionListCard
               href={`/profile/${item.id}?year=${state.data!.joiningYear}`}
+              item={item}
               key={item.id}
-            >
-              <p className="connection-card__name">
-                {item.fullname || "Unknown user"}
-              </p>
-              <p className="connection-card__meta">
-                Nickname: {item.nickname || "-"}
-              </p>
-              <p className="connection-card__meta">Title: {item.title || "-"}</p>
-              <p className="connection-card__meta">
-                Joining Year: {item.joiningYear ?? "-"}
-              </p>
-            </Link>
+            />
           ))}
         </section>
+
+        <div className="pagination-row">
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page <= 1 ? " action-button--disabled-link" : ""
+            }`}
+            href={
+              state.data.page <= 1
+                ? "#"
+                : `/years/${state.data.joiningYear}?page=${state.data.page - 1}`
+            }
+          >
+            Previous
+          </Link>
+          <p className="pagination-row__label">
+            Page {state.data.page} / {state.data.totalPages}
+          </p>
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page >= state.data.totalPages
+                ? " action-button--disabled-link"
+                : ""
+            }`}
+            href={
+              state.data.page >= state.data.totalPages
+                ? "#"
+                : `/years/${state.data.joiningYear}?page=${state.data.page + 1}`
+            }
+          >
+            Next
+          </Link>
+        </div>
       </div>
     </main>
   );
 }
 
-async function fetchUsersByJoiningYear(year: number) {
-  const response = await fetch(`/api/users/joining-year/${year}?limit=100`, {
-    method: "GET",
-    cache: "no-store"
-  });
+async function fetchUsersByJoiningYear(year: number, page: number) {
+  const response = await fetch(
+    `/api/users/joining-year/${year}?limit=5&page=${page}`,
+    {
+      method: "GET",
+      cache: "no-store"
+    }
+  );
 
   if (!response.ok) {
     const errorPayload = (await response.json().catch(() => null)) as
