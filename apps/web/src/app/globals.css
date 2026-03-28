@@ -527,7 +527,7 @@ li + li {
 
 .phone-profile-card__details-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -568,6 +568,18 @@ li + li {
   display: grid;
   gap: 4px;
   min-width: 0;
+}
+
+.profile-detail-card__item--icon {
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+}
+
+.profile-detail-card__icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
 }
 
 .profile-detail-card__label {

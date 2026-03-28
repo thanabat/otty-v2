@@ -260,14 +260,26 @@ export function LiveProfilePage() {
                 <section className="profile-detail-card">
                   <p className="profile-detail-card__eyebrow">Contact Info</p>
                   <div className="profile-detail-card__list">
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Email</span>
+                    <div className="profile-detail-card__item profile-detail-card__item--icon">
+                      <img
+                        alt="Email"
+                        className="profile-detail-card__icon"
+                        height={18}
+                        src="/email.svg"
+                        width={18}
+                      />
                       <span className="profile-detail-card__value">
                         {user.personalInfo?.email || "-"}
                       </span>
                     </div>
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Phone</span>
+                    <div className="profile-detail-card__item profile-detail-card__item--icon">
+                      <img
+                        alt="Phone"
+                        className="profile-detail-card__icon"
+                        height={18}
+                        src="/phone.svg"
+                        width={18}
+                      />
                       <span className="profile-detail-card__value">
                         {user.personalInfo?.phone || "-"}
                       </span>
