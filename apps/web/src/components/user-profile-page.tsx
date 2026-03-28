@@ -106,6 +106,28 @@ export function UserProfilePage({
         ? `/connections/${encodeURIComponent(referrer)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
         : "/profile";
 
+  const workingExperiencesQuery = new URLSearchParams();
+
+  if (referrer) {
+    workingExperiencesQuery.set("referrer", referrer);
+  }
+
+  if (site) {
+    workingExperiencesQuery.set("site", site);
+  }
+
+  if (year) {
+    workingExperiencesQuery.set("year", year);
+  }
+
+  if (page) {
+    workingExperiencesQuery.set("page", page);
+  }
+
+  const workingExperiencesHref = workingExperiencesQuery.size
+    ? `/profile/${encodeURIComponent(userId)}/working-experiences?${workingExperiencesQuery.toString()}`
+    : `/profile/${encodeURIComponent(userId)}/working-experiences`;
+
   if (state.isLoading) {
     return (
       <main className="page-shell">
@@ -177,6 +199,7 @@ export function UserProfilePage({
             : null
         }
         user={state.user}
+        workingExperiencesHref={workingExperiencesHref}
       />
     </main>
   );

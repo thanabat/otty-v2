@@ -447,6 +447,44 @@ function serializeUser(user: UserDocument): UserRecord {
           referrer: user.working_info.referrer ?? null
         }
       : undefined,
+    workingExperiences: Array.isArray(user.working_experiences)
+      ? user.working_experiences.map((experience) => ({
+          id:
+            experience && typeof experience === "object" && "_id" in experience
+              ? String(experience._id)
+              : null,
+          site:
+            experience && typeof experience === "object" && "site" in experience
+              ? normalizeString(experience.site as string | null | undefined)
+              : null,
+          project:
+            experience &&
+            typeof experience === "object" &&
+            "project" in experience
+              ? normalizeString(experience.project as string | null | undefined)
+              : null,
+          startYear:
+            experience &&
+            typeof experience === "object" &&
+            "start_year" in experience &&
+            typeof experience.start_year === "number"
+              ? experience.start_year
+              : null,
+          endYear:
+            experience &&
+            typeof experience === "object" &&
+            "end_year" in experience &&
+            typeof experience.end_year === "number"
+              ? experience.end_year
+              : null,
+          isCurrent:
+            experience &&
+            typeof experience === "object" &&
+            "is_current" in experience
+              ? Boolean(experience.is_current)
+              : false
+        }))
+      : [],
     createdAt: user.created_at?.toISOString() ?? null,
     updatedAt: user.updated_at?.toISOString() ?? null,
     isActive: Boolean(user.is_active),
@@ -478,6 +516,7 @@ function buildUserSections(user: UserDocument) {
     "line_user_id",
     "personal_info",
     "working_info",
+    "working_experiences",
     "created_at",
     "updated_at",
     "is_active",

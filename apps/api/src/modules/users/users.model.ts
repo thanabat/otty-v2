@@ -1,5 +1,23 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
+const workingExperienceSchema = new Schema(
+  {
+    site: String,
+    project: String,
+    start_year: Number,
+    end_year: Number,
+    is_current: {
+      type: Boolean,
+      default: false
+    }
+  },
+  {
+    _id: true,
+    id: false,
+    versionKey: false
+  }
+);
+
 const userSchema = new Schema(
   {
     line_user_id: {
@@ -23,6 +41,7 @@ const userSchema = new Schema(
       joining_year: Number,
       referrer: String
     },
+    working_experiences: [workingExperienceSchema],
     created_at: Date,
     updated_at: Date,
     is_active: {

@@ -11,6 +11,7 @@ type ProfileCardViewProps = {
   referrerHref?: string | null;
   currentSiteHref?: string | null;
   joiningYearHref?: string | null;
+  workingExperiencesHref?: string | null;
   footer?: ReactNode;
 };
 
@@ -21,6 +22,7 @@ export function ProfileCardView({
   referrerHref,
   currentSiteHref,
   joiningYearHref,
+  workingExperiencesHref,
   footer
 }: ProfileCardViewProps) {
   const currentYear = new Date().getFullYear();
@@ -107,7 +109,17 @@ export function ProfileCardView({
               </section>
 
               <section className="profile-detail-card">
-                <p className="profile-detail-card__eyebrow">Working Info</p>
+                <div className="profile-detail-card__header">
+                  <p className="profile-detail-card__eyebrow">Working Info</p>
+                  {workingExperiencesHref ? (
+                    <Link
+                      className="profile-detail-card__action-link"
+                      href={workingExperiencesHref}
+                    >
+                      View All
+                    </Link>
+                  ) : null}
+                </div>
                 <div className="profile-detail-card__list profile-detail-card__list--two-column">
                   <div className="profile-detail-card__item">
                     <span className="profile-detail-card__label">Experience</span>

@@ -287,6 +287,7 @@ export function LiveProfilePage() {
           referrer ? `/connections/${encodeURIComponent(referrer)}` : null
         }
         user={user}
+        workingExperiencesHref={`/profile/${encodeURIComponent(user.id)}/working-experiences?self=1`}
         footer={
           <div className="button-row button-row--stack">
             <button

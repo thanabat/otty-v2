@@ -17,6 +17,15 @@ export interface UserWorkingInfo {
   referrer?: string | null;
 }
 
+export interface UserWorkingExperience {
+  id?: string | null;
+  site?: string | null;
+  project?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  isCurrent: boolean;
+}
+
 export interface UserFieldItem {
   key: string;
   label: string;
@@ -34,6 +43,7 @@ export interface UserRecord {
   lineUserId?: string | null;
   personalInfo?: UserPersonalInfo;
   workingInfo?: UserWorkingInfo;
+  workingExperiences: UserWorkingExperience[];
   createdAt?: string | null;
   updatedAt?: string | null;
   isActive: boolean;
