@@ -8,6 +8,7 @@ type ProfileDetailPageProps = {
     referrer?: string;
     site?: string;
     year?: string;
+    page?: string;
   }>;
 };
 
@@ -23,6 +24,7 @@ export default async function ProfileDetailPage({
       referrer={resolvedSearchParams.referrer}
       site={resolvedSearchParams.site}
       year={resolvedSearchParams.year}
+      page={resolvedSearchParams.page}
       userId={userId}
     />
   );

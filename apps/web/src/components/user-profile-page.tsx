@@ -11,6 +11,7 @@ type UserProfilePageProps = {
   referrer?: string;
   site?: string;
   year?: string;
+  page?: string;
 };
 
 type UserProfileState = {
@@ -23,7 +24,8 @@ export function UserProfilePage({
   userId,
   referrer,
   site,
-  year
+  year,
+  page
 }: UserProfilePageProps) {
   const [state, setState] = useState<UserProfileState>({
     isLoading: true,
@@ -47,6 +49,10 @@ export function UserProfilePage({
 
       if (year) {
         query.set("year", year);
+      }
+
+      if (page) {
+        query.set("page", page);
       }
 
       const redirectPath = query.size
@@ -90,7 +96,15 @@ export function UserProfilePage({
     return () => {
       cancelled = true;
     };
-  }, [referrer, site, userId, year]);
+  }, [page, referrer, site, userId, year]);
+
+  const backHref = year
+    ? `/years/${encodeURIComponent(year)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
+    : site
+      ? `/sites/${encodeURIComponent(site)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
+      : referrer
+        ? `/connections/${encodeURIComponent(referrer)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
+        : "/profile";
 
   if (state.isLoading) {
     return (
@@ -116,15 +130,7 @@ export function UserProfilePage({
         <div className="button-row button-row--compact">
           <Link
             className="action-button action-button--secondary"
-            href={
-              year
-                ? `/years/${encodeURIComponent(year)}`
-                : site
-                ? `/sites/${encodeURIComponent(site)}`
-                : referrer
-                  ? `/connections/${encodeURIComponent(referrer)}`
-                  : "/profile"
-            }
+            href={backHref}
           >
             Back
           </Link>
@@ -137,15 +143,7 @@ export function UserProfilePage({
     <div className="button-row button-row--stack">
       <Link
         className="action-button action-button--secondary phone-profile-card__action"
-        href={
-          year
-            ? `/years/${encodeURIComponent(year)}`
-            : site
-            ? `/sites/${encodeURIComponent(site)}`
-            : referrer
-              ? `/connections/${encodeURIComponent(referrer)}`
-              : "/profile"
-        }
+        href={backHref}
       >
         Back
       </Link>

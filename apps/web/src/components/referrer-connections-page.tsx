@@ -111,17 +111,19 @@ export function ReferrerConnectionsPage({
     );
   }
 
+  const data = state.data;
+
   return (
     <main className="profile-stage">
       <div className="page-shell page-shell--connections">
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Connections</p>
-          <h1>{state.data.referrer} Connection</h1>
+          <h1>{data.referrer} Connection</h1>
           <p className="lead lead--dark">
-            พบ {state.data.total} คนที่มี referrer เดียวกัน
+            พบ {data.total} คนที่มี referrer เดียวกัน
           </p>
           <p className="lead lead--dark lead--compact">
-            Page {state.data.page} of {state.data.totalPages}
+            Page {data.page} of {data.totalPages}
           </p>
         </section>
 
@@ -135,11 +137,11 @@ export function ReferrerConnectionsPage({
         </div>
 
         <section className="connections-list">
-          {state.data.items.map((item) => (
+          {data.items.map((item) => (
             <ConnectionListCard
               href={`/profile/${item.id}?referrer=${encodeURIComponent(
-                state.data!.referrer
-              )}`}
+                data.referrer
+              )}&page=${data.page}`}
               item={item}
               key={item.id}
             />
@@ -149,32 +151,32 @@ export function ReferrerConnectionsPage({
         <div className="pagination-row">
           <Link
             className={`action-button action-button--secondary-dark${
-              state.data.page <= 1 ? " action-button--disabled-link" : ""
+              data.page <= 1 ? " action-button--disabled-link" : ""
             }`}
             href={
-              state.data.page <= 1
+              data.page <= 1
                 ? "#"
-                : `/connections/${encodeURIComponent(state.data.referrer)}?page=${
-                    state.data.page - 1
+                : `/connections/${encodeURIComponent(data.referrer)}?page=${
+                    data.page - 1
                   }`
             }
           >
             Previous
           </Link>
           <p className="pagination-row__label">
-            Page {state.data.page} / {state.data.totalPages}
+            Page {data.page} / {data.totalPages}
           </p>
           <Link
             className={`action-button action-button--secondary-dark${
-              state.data.page >= state.data.totalPages
+              data.page >= data.totalPages
                 ? " action-button--disabled-link"
                 : ""
             }`}
             href={
-              state.data.page >= state.data.totalPages
+              data.page >= data.totalPages
                 ? "#"
-                : `/connections/${encodeURIComponent(state.data.referrer)}?page=${
-                    state.data.page + 1
+                : `/connections/${encodeURIComponent(data.referrer)}?page=${
+                    data.page + 1
                   }`
             }
           >
