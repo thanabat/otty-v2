@@ -482,7 +482,10 @@ export function UserWorkingExperiencesPage({
                   }
                   type="checkbox"
                 />
-                <span>This is the current assignment</span>
+                <span className="editor-toggle" aria-hidden="true">
+                  <span className="editor-toggle__thumb" />
+                </span>
+                <span>Use this as the current site</span>
               </label>
             </div>
 
