@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserConnectionsResponse } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
+import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type ReferrerConnectionsPageProps = {
@@ -74,17 +75,11 @@ export function ReferrerConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage profile-stage--top">
-        <div className="page-shell page-shell--connections">
-          <section className="hero-card hero-card--dark">
-            <p className="eyebrow">Connections</p>
-            <h1>Loading connections...</h1>
-            <p className="lead lead--dark">
-              กำลังตรวจสอบ LINE login และโหลดรายชื่อที่เกี่ยวข้อง
-            </p>
-          </section>
-        </div>
-      </main>
+      <ConnectionsLoadingState
+        description="กำลังเช็ก LINE login และเตรียมรายชื่อ connection"
+        eyebrow="Connections"
+        title="Loading connections..."
+      />
     );
   }
 

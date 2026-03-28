@@ -7,6 +7,7 @@ import type {
   UserCurrentSiteOptionsResponse,
   UserProfileUpdateInput
 } from "@otty/shared";
+import { ProfileLoadingState } from "./loading-state";
 import { ProfileCardView } from "./profile-card-view";
 import { ensureLiffSession, logoutLiff } from "../lib/liff-auth";
 
@@ -223,15 +224,11 @@ export function LiveProfilePage() {
 
   if (state.isInitializing) {
     return (
-      <main className="page-shell">
-        <section className="hero-card">
-          <p className="eyebrow">Profile</p>
-          <h1>Checking LINE login...</h1>
-          <p className="lead">
-            ระบบกำลังตรวจสอบ LIFF session และเตรียมโหลดข้อมูลจาก MongoDB
-          </p>
-        </section>
-      </main>
+      <ProfileLoadingState
+        description="กำลังเช็ก LINE login และเตรียม employee profile ของคุณ"
+        eyebrow="Profile"
+        title="Preparing your card..."
+      />
     );
   }
 

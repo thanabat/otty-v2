@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserYearConnectionsResponse } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
+import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type JoiningYearConnectionsPageProps = {
@@ -72,17 +73,11 @@ export function JoiningYearConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage profile-stage--top">
-        <div className="page-shell page-shell--connections">
-          <section className="hero-card hero-card--dark">
-            <p className="eyebrow">Joining Year</p>
-            <h1>Loading cohort...</h1>
-            <p className="lead lead--dark">
-              กำลังตรวจสอบ LINE login และโหลดรายชื่อคนที่เข้าปีเดียวกัน
-            </p>
-          </section>
-        </div>
-      </main>
+      <ConnectionsLoadingState
+        description="กำลังเช็ก LINE login และเตรียมรายชื่อคนที่เข้าปีเดียวกัน"
+        eyebrow="Joining Year"
+        title="Loading cohort..."
+      />
     );
   }
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserSiteConnectionsResponse } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
+import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type SiteConnectionsPageProps = {
@@ -74,17 +75,11 @@ export function SiteConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage profile-stage--top">
-        <div className="page-shell page-shell--connections">
-          <section className="hero-card hero-card--dark">
-            <p className="eyebrow">Current Site</p>
-            <h1>Loading site connections...</h1>
-            <p className="lead lead--dark">
-              กำลังตรวจสอบ LINE login และโหลดรายชื่อใน site เดียวกัน
-            </p>
-          </section>
-        </div>
-      </main>
+      <ConnectionsLoadingState
+        description="กำลังเช็ก LINE login และเตรียมรายชื่อใน site เดียวกัน"
+        eyebrow="Current Site"
+        title="Loading site connections..."
+      />
     );
   }
 

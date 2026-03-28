@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UserRecord } from "@otty/shared";
+import { ProfileLoadingState } from "./loading-state";
 import { ProfileCardView } from "./profile-card-view";
 import { ensureLiffSession } from "../lib/liff-auth";
 
@@ -130,13 +131,11 @@ export function UserProfilePage({
 
   if (state.isLoading) {
     return (
-      <main className="page-shell">
-        <section className="hero-card">
-          <p className="eyebrow">Profile</p>
-          <h1>Loading profile...</h1>
-          <p className="lead">กำลังตรวจสอบสิทธิ์และโหลด employee profile</p>
-        </section>
-      </main>
+      <ProfileLoadingState
+        description="กำลังตรวจสอบสิทธิ์และโหลด employee profile"
+        eyebrow="Profile"
+        title="Loading profile..."
+      />
     );
   }
 

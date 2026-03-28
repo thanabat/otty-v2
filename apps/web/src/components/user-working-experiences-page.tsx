@@ -7,6 +7,7 @@ import type {
   UserWorkingExperience,
   UserWorkingExperienceInput
 } from "@otty/shared";
+import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type UserWorkingExperiencesPageProps = {
@@ -256,17 +257,11 @@ export function UserWorkingExperiencesPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage profile-stage--top">
-        <div className="page-shell page-shell--connections">
-          <section className="hero-card hero-card--dark">
-            <p className="eyebrow">Working Experiences</p>
-            <h1>Loading work history...</h1>
-            <p className="lead lead--dark">
-              กำลังตรวจสอบ LINE login และโหลดประวัติการทำงานทั้งหมด
-            </p>
-          </section>
-        </div>
-      </main>
+      <ConnectionsLoadingState
+        description="กำลังเช็ก LINE login และเตรียมประวัติการทำงานทั้งหมด"
+        eyebrow="Working Experiences"
+        title="Loading work history..."
+      />
     );
   }
 
