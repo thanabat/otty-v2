@@ -324,9 +324,16 @@ export function UserWorkingExperiencesPage({
               <article className="experience-card" key={experience.id ?? `${index}`}>
                 <div className="experience-card__header">
                   <div>
-                    <p className="experience-card__site">
-                      {experience.site || "No site"}
-                    </p>
+                    {experience.site ? (
+                      <Link
+                        className="experience-card__site experience-card__site--link"
+                        href={`/sites/${encodeURIComponent(experience.site)}`}
+                      >
+                        {experience.site}
+                      </Link>
+                    ) : (
+                      <p className="experience-card__site">No site</p>
+                    )}
                     <p className="experience-card__project">
                       {experience.project || "No project"}
                     </p>

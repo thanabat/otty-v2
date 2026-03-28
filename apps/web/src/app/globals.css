@@ -907,6 +907,14 @@ li + li {
   font-weight: 800;
 }
 
+.experience-card__site--link {
+  display: inline-block;
+  color: #f7f4ef;
+  text-decoration: underline;
+  text-decoration-color: rgba(247, 244, 239, 0.28);
+  text-underline-offset: 4px;
+}
+
 .experience-card__project {
   margin-top: 6px;
   color: rgba(247, 244, 239, 0.62);
