@@ -74,7 +74,7 @@ export function SiteConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Current Site</p>
@@ -90,7 +90,7 @@ export function SiteConnectionsPage({
 
   if (state.error || !state.data) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Current Site</p>
@@ -114,7 +114,7 @@ export function SiteConnectionsPage({
   const data = state.data;
 
   return (
-    <main className="profile-stage">
+    <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Current Site</p>

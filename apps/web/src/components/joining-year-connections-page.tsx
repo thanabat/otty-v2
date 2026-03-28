@@ -72,7 +72,7 @@ export function JoiningYearConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Joining Year</p>
@@ -88,7 +88,7 @@ export function JoiningYearConnectionsPage({
 
   if (state.error || !state.data) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Joining Year</p>
@@ -112,7 +112,7 @@ export function JoiningYearConnectionsPage({
   const data = state.data;
 
   return (
-    <main className="profile-stage">
+    <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Joining Year</p>

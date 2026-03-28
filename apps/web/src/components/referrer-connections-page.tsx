@@ -74,7 +74,7 @@ export function ReferrerConnectionsPage({
 
   if (state.isLoading) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Connections</p>
@@ -90,7 +90,7 @@ export function ReferrerConnectionsPage({
 
   if (state.error || !state.data) {
     return (
-      <main className="profile-stage">
+      <main className="profile-stage profile-stage--top">
         <div className="page-shell page-shell--connections">
           <section className="hero-card hero-card--dark">
             <p className="eyebrow">Connections</p>
@@ -114,7 +114,7 @@ export function ReferrerConnectionsPage({
   const data = state.data;
 
   return (
-    <main className="profile-stage">
+    <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
         <section className="hero-card hero-card--dark hero-card--connections">
           <p className="eyebrow">Connections</p>
