@@ -242,31 +242,9 @@ export function LiveProfilePage() {
                 <p className="phone-profile-card__name">
                   {user.personalInfo?.fullname || lineProfile.displayName}
                 </p>
-                <p className="phone-profile-card__subtitle">
-                  {user.personalInfo?.email || "No email"}
+                <p className="phone-profile-card__role">
+                  {user.workingInfo?.title || "No title"}
                 </p>
-                <div className="phone-profile-card__meta-stack">
-                  <p className="phone-profile-card__meta-line">
-                    Nick Name: {user.personalInfo?.nickname || "-"}
-                  </p>
-                  <p className="phone-profile-card__meta-line">
-                    Joining Year: {joiningYear ?? "-"}
-                  </p>
-                  <p className="phone-profile-card__meta-line">
-                    Experience:{" "}
-                    {yearsWorked !== null
-                      ? `${yearsWorked} year${yearsWorked === 1 ? "" : "s"}`
-                      : "-"}
-                  </p>
-                  {user.personalInfo?.phone ? (
-                    <p className="phone-profile-card__meta-line">
-                      Phone: {user.personalInfo.phone}
-                    </p>
-                  ) : null}
-                  <p className="phone-profile-card__meta-line">
-                    Title: {user.workingInfo?.title || "-"}
-                  </p>
-                </div>
               </div>
               <img
                 alt="Verified profile"
@@ -278,9 +256,70 @@ export function LiveProfilePage() {
             </div>
 
             <div className="phone-profile-card__footer">
-              {user.personalInfo?.bio ? (
-                <p className="phone-profile-card__bio">{user.personalInfo.bio}</p>
-              ) : null}
+              <div className="phone-profile-card__details-grid">
+                <section className="profile-detail-card">
+                  <p className="profile-detail-card__eyebrow">Contact Info</p>
+                  <div className="profile-detail-card__list">
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Email</span>
+                      <span className="profile-detail-card__value">
+                        {user.personalInfo?.email || "-"}
+                      </span>
+                    </div>
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Phone</span>
+                      <span className="profile-detail-card__value">
+                        {user.personalInfo?.phone || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="profile-detail-card">
+                  <p className="profile-detail-card__eyebrow">Working Info</p>
+                  <div className="profile-detail-card__list profile-detail-card__list--two-column">
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Experience</span>
+                      <span className="profile-detail-card__value">
+                        {yearsWorked !== null
+                          ? `${yearsWorked} year${yearsWorked === 1 ? "" : "s"}`
+                          : "-"}
+                      </span>
+                    </div>
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Joining Year</span>
+                      <span className="profile-detail-card__value">
+                        {joiningYear ?? "-"}
+                      </span>
+                    </div>
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Current Site</span>
+                      <span className="profile-detail-card__value">
+                        {user.workingInfo?.currentSite ||
+                          user.workingInfo?.currentSiteOther ||
+                          "-"}
+                      </span>
+                    </div>
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">Referrer</span>
+                      <span className="profile-detail-card__value">
+                        {user.workingInfo?.referrer || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="profile-detail-card profile-detail-card--full">
+                  <p className="profile-detail-card__eyebrow">Bio</p>
+                  <div className="profile-detail-card__list">
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__value profile-detail-card__value--body">
+                        {user.personalInfo?.bio || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+              </div>
 
               <div className="button-row button-row--stack">
                 <button
