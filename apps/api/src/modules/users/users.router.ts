@@ -10,7 +10,8 @@ import {
   listUsersByCurrentSite,
   listUsersByJoiningYear,
   listUsers,
-  listUsersByReferrer
+  listUsersByReferrer,
+  listUsersByReferrerUserId
 } from "./users.service";
 
 const listUsersQuerySchema = z.object({
@@ -128,6 +129,22 @@ usersRouter.get("/users/referrer/:referrer", async (request, response, next) => 
       query.limit,
       query.page,
       query.referrerUserId
+    );
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/referrer-user/:userId", async (request, response, next) => {
+  try {
+    const params = userIdParamsSchema.parse(request.params);
+    const query = listUsersQuerySchema.parse(request.query);
+    const payload = await listUsersByReferrerUserId(
+      params.userId,
+      query.limit,
+      query.page
     );
 
     response.json(payload);

@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { UserConnectionsResponse, UserReferrerSummary } from "@otty/shared";
+import type {
+  UserConnectionsResponse,
+  UserRecord,
+  UserReferrerSummary
+} from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type ReferrerConnectionsPageProps = {
-  referrer: string;
+  referrer?: string;
   referrerUserId?: string;
   currentPage: number;
+  useReferrerUserRoute?: boolean;
 };
 
 type ConnectionsState = {
@@ -23,7 +28,8 @@ type ConnectionsState = {
 export function ReferrerConnectionsPage({
   referrer,
   referrerUserId,
-  currentPage
+  currentPage,
+  useReferrerUserRoute = false
 }: ReferrerConnectionsPageProps) {
   const [state, setState] = useState<ConnectionsState>({
     isLoading: true,
@@ -38,11 +44,18 @@ export function ReferrerConnectionsPage({
     async function bootstrap() {
       try {
         await ensureLiffSession(
-          buildReferrerConnectionsHref(referrer, currentPage, referrerUserId)
+          buildReferrerConnectionsHref({
+            referrer,
+            referrerUserId,
+            page: currentPage,
+            useReferrerUserRoute
+          })
         );
         const [data, referrerProfile] = await Promise.all([
-          fetchUsersByReferrer(referrer, currentPage, referrerUserId),
-          fetchReferrerProfile(referrer, referrerUserId)
+          useReferrerUserRoute && referrerUserId
+            ? fetchUsersByReferrerUserId(referrerUserId, currentPage)
+            : fetchUsersByReferrer(referrer ?? "", currentPage, referrerUserId),
+          fetchReferrerProfile(referrerUserId)
         ]);
 
         if (!cancelled) {
@@ -80,7 +93,7 @@ export function ReferrerConnectionsPage({
     return () => {
       cancelled = true;
     };
-  }, [currentPage, referrer, referrerUserId]);
+  }, [currentPage, referrer, referrerUserId, useReferrerUserRoute]);
 
   if (state.isLoading) {
     return (
@@ -122,10 +135,7 @@ export function ReferrerConnectionsPage({
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
         {state.referrerProfile ? (
-          <Link
-            className="connection-card connection-card--dark connection-card--compact connection-card--profile connection-card--profile-link"
-            href={`/profile/${state.referrerProfile.id}`}
-          >
+          <section className="connection-card connection-card--dark connection-card--compact connection-card--profile">
             <p className="connection-card__eyebrow">Referrer</p>
             <p className="connection-card__name">
               {state.referrerProfile.fullname || data.referrer}
@@ -133,7 +143,15 @@ export function ReferrerConnectionsPage({
             <p className="connection-card__meta">
               {state.referrerProfile.title || "No title"}
             </p>
-          </Link>
+            <div className="connection-card__actions connection-card__actions--end">
+              <Link
+                className="action-button action-button--secondary-dark connection-card__button"
+                href={`/profile/${state.referrerProfile.id}`}
+              >
+                View Profile
+              </Link>
+            </div>
+          </section>
         ) : (
           <section className="hero-card hero-card--dark hero-card--connections">
             <p className="eyebrow">Connections</p>
@@ -190,11 +208,12 @@ export function ReferrerConnectionsPage({
               href={
                 data.page <= 1
                   ? "#"
-                  : buildReferrerConnectionsHref(
-                      data.referrer,
-                      data.page - 1,
-                      referrerUserId
-                    )
+                  : buildReferrerConnectionsHref({
+                      referrer: data.referrer,
+                      referrerUserId,
+                      page: data.page - 1,
+                      useReferrerUserRoute
+                    })
               }
             >
               Previous
@@ -211,11 +230,12 @@ export function ReferrerConnectionsPage({
               href={
                 data.page >= data.totalPages
                   ? "#"
-                  : buildReferrerConnectionsHref(
-                      data.referrer,
-                      data.page + 1,
-                      referrerUserId
-                    )
+                  : buildReferrerConnectionsHref({
+                      referrer: data.referrer,
+                      referrerUserId,
+                      page: data.page + 1,
+                      useReferrerUserRoute
+                    })
               }
             >
               Next
@@ -260,18 +280,40 @@ async function fetchUsersByReferrer(
   return (await response.json()) as UserConnectionsResponse;
 }
 
-async function fetchReferrerProfile(referrer: string, referrerUserId?: string) {
+async function fetchUsersByReferrerUserId(referrerUserId: string, page: number) {
+  const query = new URLSearchParams({
+    limit: "5",
+    page: String(page)
+  });
+
+  const response = await fetch(
+    `/api/users/referrer-user/${encodeURIComponent(referrerUserId)}?${query.toString()}`,
+    {
+      method: "GET",
+      cache: "no-store"
+    }
+  );
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as
+      | { message?: string }
+      | null;
+
+    throw new Error(
+      errorPayload?.message ?? "Unable to load referrer user connections"
+    );
+  }
+
+  return (await response.json()) as UserConnectionsResponse;
+}
+
+async function fetchReferrerProfile(referrerUserId?: string) {
   if (!referrerUserId) {
     return null;
   }
 
-  const query = new URLSearchParams();
-  query.set("referrerUserId", referrerUserId);
-
   const response = await fetch(
-    `/api/users/referrer-profile/${encodeURIComponent(referrer)}${
-      query.size ? `?${query.toString()}` : ""
-    }`,
+    `/api/users/${encodeURIComponent(referrerUserId)}`,
     {
       method: "GET",
       cache: "no-store"
@@ -286,7 +328,7 @@ async function fetchReferrerProfile(referrer: string, referrerUserId?: string) {
     throw new Error("Unable to load referrer profile");
   }
 
-  const payload = (await response.json()) as Partial<UserReferrerSummary> | null;
+  const payload = (await response.json()) as UserRecord | null;
 
   if (!payload?.id) {
     return null;
@@ -294,23 +336,28 @@ async function fetchReferrerProfile(referrer: string, referrerUserId?: string) {
 
   return {
     id: payload.id,
-    fullname: payload.fullname ?? null,
-    title: payload.title ?? null
+    fullname: payload.personalInfo?.fullname ?? null,
+    title: payload.workingInfo?.title ?? null
   };
 }
 
-function buildReferrerConnectionsHref(
-  referrer: string,
-  page: number,
-  referrerUserId?: string
-) {
+function buildReferrerConnectionsHref(options: {
+  referrer?: string;
+  referrerUserId?: string;
+  page: number;
+  useReferrerUserRoute?: boolean;
+}) {
   const query = new URLSearchParams({
-    page: String(page)
+    page: String(options.page)
   });
 
-  if (referrerUserId) {
-    query.set("referrerUserId", referrerUserId);
+  if (options.useReferrerUserRoute && options.referrerUserId) {
+    return `/connections/user/${encodeURIComponent(options.referrerUserId)}?${query.toString()}`;
   }
 
-  return `/connections/${encodeURIComponent(referrer)}?${query.toString()}`;
+  if (options.referrerUserId) {
+    query.set("referrerUserId", options.referrerUserId);
+  }
+
+  return `/connections/${encodeURIComponent(options.referrer ?? "")}?${query.toString()}`;
 }

@@ -10,6 +10,7 @@
     "dev:liff": "node ./scripts/dev-liff.mjs",
     "db:backfill:user-profile-fields": "node ./scripts/backfill-user-profile-fields.mjs",
     "db:backfill:working-experiences": "node ./scripts/backfill-working-experiences.mjs",
+    "db:backfill:referrer-user-id": "node ./scripts/backfill-referrer-user-id.mjs",
     "db:normalize:current-site": "node ./scripts/normalize-current-site.mjs",
     "dev:web": "npm run dev --workspace @otty/web",
     "dev:api": "npm run dev --workspace @otty/api",

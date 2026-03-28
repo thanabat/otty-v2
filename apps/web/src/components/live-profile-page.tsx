@@ -652,12 +652,9 @@ function buildReferrerCandidateLabel(candidate: UserReferrerCandidate) {
 }
 
 function buildReferrerHref(referrer: string, referrerUserId?: string | null) {
-  const query = new URLSearchParams();
-
   if (referrerUserId) {
-    query.set("referrerUserId", referrerUserId);
+    return `/connections/user/${encodeURIComponent(referrerUserId)}`;
   }
 
-  const pathname = `/connections/${encodeURIComponent(referrer)}`;
-  return query.size ? `${pathname}?${query.toString()}` : pathname;
+  return `/connections/${encodeURIComponent(referrer)}`;
 }

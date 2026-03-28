@@ -136,6 +136,12 @@ To create a first current `working_experiences` entry from existing `working_inf
 npm run db:backfill:working-experiences
 ```
 
+To backfill `working_info.referrer_user_id` for legacy referrer text values, matching only when the referrer can be resolved to exactly one existing user:
+
+```bash
+npm run db:backfill:referrer-user-id
+```
+
 ## Deployment Expectation
 
 Deploy the two apps as separate services:

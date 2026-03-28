@@ -230,7 +230,8 @@ function buildReferrerConnectionsHref(
   }
 
   if (referrerUserId) {
-    query.set("referrerUserId", referrerUserId);
+    const pathname = `/connections/user/${encodeURIComponent(referrerUserId)}`;
+    return query.size ? `${pathname}?${query.toString()}` : pathname;
   }
 
   const pathname = `/connections/${encodeURIComponent(referrer)}`;

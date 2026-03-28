@@ -859,15 +859,17 @@ li + li {
   line-height: 1.05;
 }
 
-.connection-card--profile-link {
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+.connection-card__actions {
+  display: flex;
+  margin-top: 12px;
 }
 
-.connection-card--profile-link:hover {
-  transform: translateY(-1px);
+.connection-card__actions--end {
+  justify-content: flex-end;
+}
+
+.connection-card__button {
+  min-width: 148px;
 }
 
 .connections-summary {

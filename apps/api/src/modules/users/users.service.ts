@@ -316,6 +316,111 @@ export async function listUsersByReferrer(
   };
 }
 
+export async function listUsersByReferrerUserId(
+  referrerUserId: string,
+  limit: number,
+  page: number
+): Promise<UserConnectionsResponse> {
+  const normalizedReferrerUserId = normalizeObjectIdString(referrerUserId);
+
+  if (!normalizedReferrerUserId) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "InvalidReferrerUserId",
+      message: "Referrer user id must be a valid MongoDB ObjectId"
+    });
+  }
+
+  const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const normalizedPage = Math.max(page, 1);
+  const skip = (normalizedPage - 1) * normalizedLimit;
+  const projection = {
+    _id: 1,
+    "personal_info.fullname": 1,
+    "personal_info.nickname": 1,
+    "working_info.title": 1,
+    "working_info.joining_year": 1,
+    "working_info.current_site": 1,
+    "working_info.current_site_other": 1
+  } as const;
+
+  const referrerUser = await UserModel.findById(
+    normalizedReferrerUserId,
+    {
+      "personal_info.nickname": 1,
+      "personal_info.fullname": 1
+    }
+  ).lean<
+    | {
+        personal_info?: {
+          nickname?: string | null;
+          fullname?: string | null;
+        };
+      }
+    | null
+  >();
+
+  if (!referrerUser) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "ReferrerUserNotFound",
+      message: "Referrer user was not found"
+    });
+  }
+
+  const [items, total] = await Promise.all([
+    UserModel.find(
+      {
+        "working_info.referrer_user_id": normalizedReferrerUserId
+      },
+      projection
+    )
+      .sort({ "personal_info.fullname": 1, _id: 1 })
+      .skip(skip)
+      .limit(normalizedLimit)
+      .lean<
+        Array<{
+          _id: mongoose.Types.ObjectId;
+          personal_info?: {
+            fullname?: string | null;
+            nickname?: string | null;
+          };
+          working_info?: {
+            title?: string | null;
+            joining_year?: number | null;
+            current_site?: string | null;
+            current_site_other?: string | null;
+          };
+        }>
+      >(),
+    UserModel.countDocuments({
+      "working_info.referrer_user_id": normalizedReferrerUserId
+    })
+  ]);
+
+  return {
+    referrer:
+      buildReferrerSnapshot(referrerUser.personal_info) ??
+      extractShortName(referrerUser.personal_info?.fullname) ??
+      "Referrer",
+    items: items.map((user) => ({
+      id: user._id.toString(),
+      fullname: user.personal_info?.fullname ?? null,
+      nickname: user.personal_info?.nickname ?? null,
+      title: user.working_info?.title ?? null,
+      joiningYear: user.working_info?.joining_year ?? null,
+      currentSite:
+        user.working_info?.current_site ??
+        user.working_info?.current_site_other ??
+        null
+    })),
+    total,
+    limit: normalizedLimit,
+    page: normalizedPage,
+    totalPages: Math.max(Math.ceil(total / normalizedLimit), 1)
+  };
+}
+
 export async function listUsersByCurrentSite(
   site: string,
   limit: number,
