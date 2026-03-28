@@ -14,6 +14,7 @@ type UserWorkingExperiencesPageProps = {
   userId: string;
   self?: string;
   referrer?: string;
+  referrerUserId?: string;
   site?: string;
   year?: string;
   page?: string;
@@ -38,6 +39,7 @@ export function UserWorkingExperiencesPage({
   userId,
   self,
   referrer,
+  referrerUserId,
   site,
   year,
   page
@@ -68,6 +70,10 @@ export function UserWorkingExperiencesPage({
 
       if (referrer) {
         query.set("referrer", referrer);
+      }
+
+      if (referrerUserId) {
+        query.set("referrerUserId", referrerUserId);
       }
 
       if (site) {
@@ -125,7 +131,7 @@ export function UserWorkingExperiencesPage({
     return () => {
       cancelled = true;
     };
-  }, [page, referrer, self, site, userId, year]);
+  }, [page, referrer, referrerUserId, self, site, userId, year]);
 
   useEffect(() => {
     if (!isEditorOpen) {
@@ -148,6 +154,7 @@ export function UserWorkingExperiencesPage({
     ? "/profile"
     : buildProfileHref(userId, {
         referrer,
+        referrerUserId,
         site,
         year,
         page
@@ -619,6 +626,7 @@ function buildProfileHref(
   userId: string,
   options: {
     referrer?: string;
+    referrerUserId?: string;
     site?: string;
     year?: string;
     page?: string;
@@ -628,6 +636,10 @@ function buildProfileHref(
 
   if (options.referrer) {
     query.set("referrer", options.referrer);
+  }
+
+  if (options.referrerUserId) {
+    query.set("referrerUserId", options.referrerUserId);
   }
 
   if (options.site) {

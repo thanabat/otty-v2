@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type {
   LiffLoginResponse,
   UserProfileUpdateInput,
-  UserReferrerOptionsResponse
+  UserReferrerCandidate,
+  UserReferrerCandidatesResponse
 } from "@otty/shared";
 import { ProfileLoadingState } from "./loading-state";
 import { ProfileCardView } from "./profile-card-view";
@@ -37,6 +38,7 @@ type EditFormState = {
   bio: string;
   title: string;
   referrer: string;
+  referrerUserId: string;
   joiningYear: string;
 };
 
@@ -45,7 +47,9 @@ export function LiveProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [referrerOptions, setReferrerOptions] = useState<string[]>([]);
+  const [referrerCandidates, setReferrerCandidates] = useState<
+    UserReferrerCandidate[]
+  >([]);
   const [isReferrerMenuOpen, setIsReferrerMenuOpen] = useState(false);
   const referrerFieldRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<EditFormState>({
@@ -56,6 +60,7 @@ export function LiveProfilePage() {
     bio: "",
     title: "",
     referrer: "",
+    referrerUserId: "",
     joiningYear: ""
   });
 
@@ -121,7 +126,7 @@ export function LiveProfilePage() {
         const items = await fetchReferrerOptions();
 
         if (!cancelled) {
-          setReferrerOptions(items);
+          setReferrerCandidates(items);
         }
       } catch {}
     }
@@ -173,10 +178,14 @@ export function LiveProfilePage() {
   }, [isEditing, isReferrerMenuOpen]);
 
   const normalizedReferrerQuery = form.referrer.trim().toLowerCase();
-  const filteredReferrerOptions = referrerOptions
+  const filteredReferrerOptions = referrerCandidates
     .filter((item) =>
       normalizedReferrerQuery
-        ? item.toLowerCase().includes(normalizedReferrerQuery)
+        ? [
+            item.nickname ?? "",
+            item.shortName ?? "",
+            item.fullname ?? ""
+          ].some((value) => value.toLowerCase().includes(normalizedReferrerQuery))
         : true
     )
     .slice(0, 8);
@@ -203,6 +212,7 @@ export function LiveProfilePage() {
         bio: normalizeFormText(form.bio),
         title: normalizeFormText(form.title),
         referrer: normalizeFormText(form.referrer),
+        referrerUserId: normalizeFormText(form.referrerUserId),
         joiningYear: normalizeJoiningYear(form.joiningYear)
       });
 
@@ -265,6 +275,7 @@ export function LiveProfilePage() {
 
   const { user, lineProfile } = state.session;
   const referrer = user.workingInfo?.referrer?.trim() || "";
+  const referrerUserId = user.workingInfo?.referrerUserId?.trim() || "";
   const currentSite =
     user.workingInfo?.currentSite?.trim() ||
     user.workingInfo?.currentSiteOther?.trim() ||
@@ -281,7 +292,9 @@ export function LiveProfilePage() {
         joiningYearHref={joiningYear ? `/years/${joiningYear}` : null}
         pictureUrl={user.personalInfo?.pictureUrl ?? lineProfile.pictureUrl}
         referrerHref={
-          referrer ? `/connections/${encodeURIComponent(referrer)}` : null
+          referrer
+            ? buildReferrerHref(referrer, referrerUserId || null)
+            : null
         }
         user={user}
         workingExperiencesHref={`/profile/${encodeURIComponent(user.id)}/working-experiences?self=1`}
@@ -427,7 +440,8 @@ export function LiveProfilePage() {
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
-                        referrer: event.target.value
+                        referrer: event.target.value,
+                        referrerUserId: ""
                       }));
                       setIsReferrerMenuOpen(true);
                     }}
@@ -450,15 +464,16 @@ export function LiveProfilePage() {
                         filteredReferrerOptions.map((item) => (
                           <button
                             className={`combobox-field__option${
-                              form.referrer === item
+                              form.referrerUserId === item.id
                                 ? " combobox-field__option--active"
                                 : ""
                             }`}
-                            key={item}
+                            key={item.id}
                             onClick={() => {
                               setForm((current) => ({
                                 ...current,
-                                referrer: item
+                                referrer: buildReferrerCandidateLabel(item),
+                                referrerUserId: item.id
                               }));
                               setIsReferrerMenuOpen(false);
                             }}
@@ -468,7 +483,7 @@ export function LiveProfilePage() {
                             role="option"
                             type="button"
                           >
-                            {item}
+                            {buildReferrerCandidateLabel(item)}
                           </button>
                         ))
                       ) : (
@@ -588,6 +603,7 @@ function createEditFormState(session: LiffLoginResponse): EditFormState {
     bio: session.user.personalInfo?.bio ?? "",
     title: session.user.workingInfo?.title ?? "",
     referrer: session.user.workingInfo?.referrer ?? "",
+    referrerUserId: session.user.workingInfo?.referrerUserId ?? "",
     joiningYear: session.user.workingInfo?.joiningYear
       ? String(session.user.workingInfo.joiningYear)
       : ""
@@ -611,7 +627,7 @@ function normalizeJoiningYear(value: string) {
 }
 
 async function fetchReferrerOptions() {
-  const response = await fetch("/api/users/referrers", {
+  const response = await fetch("/api/users/referrer-candidates", {
     method: "GET",
     cache: "no-store"
   });
@@ -620,6 +636,28 @@ async function fetchReferrerOptions() {
     throw new Error("Unable to load referrer options");
   }
 
-  const payload = (await response.json()) as UserReferrerOptionsResponse;
+  const payload = (await response.json()) as UserReferrerCandidatesResponse;
   return payload.items;
+}
+
+function buildReferrerCandidateLabel(candidate: UserReferrerCandidate) {
+  const nickname = candidate.nickname?.trim() ?? "";
+  const shortName = candidate.shortName?.trim() ?? "";
+
+  if (nickname && shortName) {
+    return `${nickname} • ${shortName}`;
+  }
+
+  return nickname || shortName || candidate.fullname?.trim() || "Unknown user";
+}
+
+function buildReferrerHref(referrer: string, referrerUserId?: string | null) {
+  const query = new URLSearchParams();
+
+  if (referrerUserId) {
+    query.set("referrerUserId", referrerUserId);
+  }
+
+  const pathname = `/connections/${encodeURIComponent(referrer)}`;
+  return query.size ? `${pathname}?${query.toString()}` : pathname;
 }

@@ -7,6 +7,7 @@ type WorkingExperiencesRouteProps = {
   searchParams?: Promise<{
     self?: string;
     referrer?: string;
+    referrerUserId?: string;
     site?: string;
     year?: string;
     page?: string;
@@ -24,6 +25,7 @@ export default async function WorkingExperiencesRoute({
     <UserWorkingExperiencesPage
       page={resolvedSearchParams.page}
       referrer={resolvedSearchParams.referrer}
+      referrerUserId={resolvedSearchParams.referrerUserId}
       self={resolvedSearchParams.self}
       site={resolvedSearchParams.site}
       userId={userId}

@@ -15,6 +15,7 @@ export interface UserWorkingInfo {
   title?: string | null;
   joiningYear?: number | null;
   referrer?: string | null;
+  referrerUserId?: string | null;
 }
 
 export interface UserWorkingExperience {
@@ -74,6 +75,19 @@ export interface UserConnectionItem {
   currentSite?: string | null;
 }
 
+export interface UserReferrerSummary {
+  id: string;
+  fullname?: string | null;
+  title?: string | null;
+}
+
+export interface UserReferrerCandidate {
+  id: string;
+  nickname?: string | null;
+  fullname?: string | null;
+  shortName?: string | null;
+}
+
 export interface UserConnectionsResponse {
   referrer: string;
   items: UserConnectionItem[];
@@ -109,6 +123,10 @@ export interface UserReferrerOptionsResponse {
   items: string[];
 }
 
+export interface UserReferrerCandidatesResponse {
+  items: UserReferrerCandidate[];
+}
+
 export interface UserProfileUpdateInput {
   fullname?: string | null;
   nickname?: string | null;
@@ -117,5 +135,6 @@ export interface UserProfileUpdateInput {
   bio?: string | null;
   title?: string | null;
   referrer?: string | null;
+  referrerUserId?: string | null;
   joiningYear?: number | null;
 }

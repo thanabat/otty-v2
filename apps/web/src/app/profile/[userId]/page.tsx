@@ -6,6 +6,7 @@ type ProfileDetailPageProps = {
   }>;
   searchParams?: Promise<{
     referrer?: string;
+    referrerUserId?: string;
     site?: string;
     year?: string;
     page?: string;
@@ -22,6 +23,7 @@ export default async function ProfileDetailPage({
   return (
     <UserProfilePage
       referrer={resolvedSearchParams.referrer}
+      referrerUserId={resolvedSearchParams.referrerUserId}
       site={resolvedSearchParams.site}
       year={resolvedSearchParams.year}
       page={resolvedSearchParams.page}

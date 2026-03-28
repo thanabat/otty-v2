@@ -6,6 +6,7 @@ type ConnectionsPageProps = {
   }>;
   searchParams?: Promise<{
     page?: string;
+    referrerUserId?: string;
   }>;
 };
 
@@ -21,6 +22,7 @@ export default async function ConnectionsPage({
     <ReferrerConnectionsPage
       currentPage={Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1}
       referrer={decodeURIComponent(referrer)}
+      referrerUserId={resolvedSearchParams.referrerUserId}
     />
   );
 }

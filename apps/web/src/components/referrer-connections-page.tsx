@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { UserConnectionsResponse } from "@otty/shared";
+import type { UserConnectionsResponse, UserReferrerSummary } from "@otty/shared";
 import { ConnectionListCard } from "./connection-list-card";
 import { ConnectionsLoadingState } from "./loading-state";
 import { ensureLiffSession } from "../lib/liff-auth";
 
 type ReferrerConnectionsPageProps = {
   referrer: string;
+  referrerUserId?: string;
   currentPage: number;
 };
 
@@ -16,16 +17,19 @@ type ConnectionsState = {
   isLoading: boolean;
   error: string | null;
   data: UserConnectionsResponse | null;
+  referrerProfile: UserReferrerSummary | null;
 };
 
 export function ReferrerConnectionsPage({
   referrer,
+  referrerUserId,
   currentPage
 }: ReferrerConnectionsPageProps) {
   const [state, setState] = useState<ConnectionsState>({
     isLoading: true,
     error: null,
-    data: null
+    data: null,
+    referrerProfile: null
   });
 
   useEffect(() => {
@@ -34,15 +38,19 @@ export function ReferrerConnectionsPage({
     async function bootstrap() {
       try {
         await ensureLiffSession(
-          `/connections/${encodeURIComponent(referrer)}?page=${currentPage}`
+          buildReferrerConnectionsHref(referrer, currentPage, referrerUserId)
         );
-        const data = await fetchUsersByReferrer(referrer, currentPage);
+        const [data, referrerProfile] = await Promise.all([
+          fetchUsersByReferrer(referrer, currentPage, referrerUserId),
+          fetchReferrerProfile(referrer, referrerUserId)
+        ]);
 
         if (!cancelled) {
           setState({
             isLoading: false,
             error: null,
-            data
+            data,
+            referrerProfile
           });
         }
       } catch (error) {
@@ -60,7 +68,8 @@ export function ReferrerConnectionsPage({
               error instanceof Error
                 ? error.message
                 : "Unable to load connections",
-            data: null
+            data: null,
+            referrerProfile: null
           });
         }
       }
@@ -71,7 +80,7 @@ export function ReferrerConnectionsPage({
     return () => {
       cancelled = true;
     };
-  }, [currentPage, referrer]);
+  }, [currentPage, referrer, referrerUserId]);
 
   if (state.isLoading) {
     return (
@@ -112,18 +121,44 @@ export function ReferrerConnectionsPage({
   return (
     <main className="profile-stage profile-stage--top">
       <div className="page-shell page-shell--connections">
-        <section className="hero-card hero-card--dark hero-card--connections">
-          <p className="eyebrow">Connections</p>
-          <h1>{data.referrer} Connection</h1>
-          <p className="lead lead--dark">
-            พบ {data.total} คนที่มี referrer เดียวกัน
-          </p>
-          {shouldShowPagination ? (
-            <p className="lead lead--dark lead--compact">
-              Page {data.page} of {data.totalPages}
+        {state.referrerProfile ? (
+          <Link
+            className="connection-card connection-card--dark connection-card--compact connection-card--profile connection-card--profile-link"
+            href={`/profile/${state.referrerProfile.id}`}
+          >
+            <p className="connection-card__eyebrow">Referrer</p>
+            <p className="connection-card__name">
+              {state.referrerProfile.fullname || data.referrer}
             </p>
-          ) : null}
-        </section>
+            <p className="connection-card__meta">
+              {state.referrerProfile.title || "No title"}
+            </p>
+          </Link>
+        ) : (
+          <section className="hero-card hero-card--dark hero-card--connections">
+            <p className="eyebrow">Connections</p>
+            <h1>{data.referrer} Connection</h1>
+            <p className="lead lead--dark">
+              พบ {data.total} คนที่มี referrer เดียวกัน
+            </p>
+            {shouldShowPagination ? (
+              <p className="lead lead--dark lead--compact">
+                Page {data.page} of {data.totalPages}
+              </p>
+            ) : null}
+          </section>
+        )}
+
+        {state.referrerProfile ? (
+          <section className="connections-summary">
+            <p className="lead lead--dark">พบ {data.total} คนที่มี referrer เดียวกัน</p>
+            {shouldShowPagination ? (
+              <p className="lead lead--dark lead--compact">
+                Page {data.page} of {data.totalPages}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
 
         <div className="button-row button-row--compact button-row--toolbar">
           <Link
@@ -139,7 +174,7 @@ export function ReferrerConnectionsPage({
             <ConnectionListCard
               href={`/profile/${item.id}?referrer=${encodeURIComponent(
                 data.referrer
-              )}&page=${data.page}`}
+              )}${referrerUserId ? `&referrerUserId=${encodeURIComponent(referrerUserId)}` : ""}&page=${data.page}`}
               item={item}
               key={item.id}
             />
@@ -155,9 +190,11 @@ export function ReferrerConnectionsPage({
               href={
                 data.page <= 1
                   ? "#"
-                  : `/connections/${encodeURIComponent(data.referrer)}?page=${
-                      data.page - 1
-                    }`
+                  : buildReferrerConnectionsHref(
+                      data.referrer,
+                      data.page - 1,
+                      referrerUserId
+                    )
               }
             >
               Previous
@@ -174,9 +211,11 @@ export function ReferrerConnectionsPage({
               href={
                 data.page >= data.totalPages
                   ? "#"
-                  : `/connections/${encodeURIComponent(data.referrer)}?page=${
-                      data.page + 1
-                    }`
+                  : buildReferrerConnectionsHref(
+                      data.referrer,
+                      data.page + 1,
+                      referrerUserId
+                    )
               }
             >
               Next
@@ -188,9 +227,22 @@ export function ReferrerConnectionsPage({
   );
 }
 
-async function fetchUsersByReferrer(referrer: string, page: number) {
+async function fetchUsersByReferrer(
+  referrer: string,
+  page: number,
+  referrerUserId?: string
+) {
+  const query = new URLSearchParams({
+    limit: "5",
+    page: String(page)
+  });
+
+  if (referrerUserId) {
+    query.set("referrerUserId", referrerUserId);
+  }
+
   const response = await fetch(
-    `/api/users/referrer/${encodeURIComponent(referrer)}?limit=5&page=${page}`,
+    `/api/users/referrer/${encodeURIComponent(referrer)}?${query.toString()}`,
     {
       method: "GET",
       cache: "no-store"
@@ -206,4 +258,59 @@ async function fetchUsersByReferrer(referrer: string, page: number) {
   }
 
   return (await response.json()) as UserConnectionsResponse;
+}
+
+async function fetchReferrerProfile(referrer: string, referrerUserId?: string) {
+  if (!referrerUserId) {
+    return null;
+  }
+
+  const query = new URLSearchParams();
+  query.set("referrerUserId", referrerUserId);
+
+  const response = await fetch(
+    `/api/users/referrer-profile/${encodeURIComponent(referrer)}${
+      query.size ? `?${query.toString()}` : ""
+    }`,
+    {
+      method: "GET",
+      cache: "no-store"
+    }
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Unable to load referrer profile");
+  }
+
+  const payload = (await response.json()) as Partial<UserReferrerSummary> | null;
+
+  if (!payload?.id) {
+    return null;
+  }
+
+  return {
+    id: payload.id,
+    fullname: payload.fullname ?? null,
+    title: payload.title ?? null
+  };
+}
+
+function buildReferrerConnectionsHref(
+  referrer: string,
+  page: number,
+  referrerUserId?: string
+) {
+  const query = new URLSearchParams({
+    page: String(page)
+  });
+
+  if (referrerUserId) {
+    query.set("referrerUserId", referrerUserId);
+  }
+
+  return `/connections/${encodeURIComponent(referrer)}?${query.toString()}`;
 }

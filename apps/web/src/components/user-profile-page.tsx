@@ -10,6 +10,7 @@ import { ensureLiffSession } from "../lib/liff-auth";
 type UserProfilePageProps = {
   userId: string;
   referrer?: string;
+  referrerUserId?: string;
   site?: string;
   year?: string;
   page?: string;
@@ -24,6 +25,7 @@ type UserProfileState = {
 export function UserProfilePage({
   userId,
   referrer,
+  referrerUserId,
   site,
   year,
   page
@@ -42,6 +44,10 @@ export function UserProfilePage({
 
       if (referrer) {
         query.set("referrer", referrer);
+      }
+
+      if (referrerUserId) {
+        query.set("referrerUserId", referrerUserId);
       }
 
       if (site) {
@@ -97,20 +103,24 @@ export function UserProfilePage({
     return () => {
       cancelled = true;
     };
-  }, [page, referrer, site, userId, year]);
+  }, [page, referrer, referrerUserId, site, userId, year]);
 
   const backHref = year
     ? `/years/${encodeURIComponent(year)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
     : site
       ? `/sites/${encodeURIComponent(site)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
       : referrer
-        ? `/connections/${encodeURIComponent(referrer)}${page ? `?page=${encodeURIComponent(page)}` : ""}`
+        ? buildReferrerConnectionsHref(referrer, page, referrerUserId)
         : "/profile";
 
   const workingExperiencesQuery = new URLSearchParams();
 
   if (referrer) {
     workingExperiencesQuery.set("referrer", referrer);
+  }
+
+  if (referrerUserId) {
+    workingExperiencesQuery.set("referrerUserId", referrerUserId);
   }
 
   if (site) {
@@ -194,7 +204,11 @@ export function UserProfilePage({
         pictureUrl={state.user.personalInfo?.pictureUrl}
         referrerHref={
           state.user.workingInfo?.referrer?.trim()
-            ? `/connections/${encodeURIComponent(state.user.workingInfo.referrer.trim())}`
+            ? buildReferrerConnectionsHref(
+                state.user.workingInfo.referrer.trim(),
+                undefined,
+                state.user.workingInfo?.referrerUserId?.trim() || undefined
+              )
             : null
         }
         user={state.user}
@@ -202,6 +216,25 @@ export function UserProfilePage({
       />
     </main>
   );
+}
+
+function buildReferrerConnectionsHref(
+  referrer: string,
+  page?: string,
+  referrerUserId?: string
+) {
+  const query = new URLSearchParams();
+
+  if (page) {
+    query.set("page", page);
+  }
+
+  if (referrerUserId) {
+    query.set("referrerUserId", referrerUserId);
+  }
+
+  const pathname = `/connections/${encodeURIComponent(referrer)}`;
+  return query.size ? `${pathname}?${query.toString()}` : pathname;
 }
 
 async function fetchUserById(userId: string) {

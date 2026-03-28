@@ -827,6 +827,15 @@ li + li {
   font-weight: 800;
 }
 
+.connection-card__eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .connection-card__meta {
   margin: 0;
   color: var(--muted);
@@ -835,6 +844,35 @@ li + li {
 
 .connection-card--dark .connection-card__meta {
   color: rgba(247, 244, 239, 0.62);
+}
+
+.connection-card--compact {
+  padding: 18px 20px;
+}
+
+.connection-card--profile {
+  gap: 6px;
+}
+
+.connection-card--profile .connection-card__name {
+  font-size: 1.55rem;
+  line-height: 1.05;
+}
+
+.connection-card--profile-link {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.connection-card--profile-link:hover {
+  transform: translateY(-1px);
+}
+
+.connections-summary {
+  margin-top: 14px;
+  margin-bottom: 4px;
 }
 
 .experience-card {

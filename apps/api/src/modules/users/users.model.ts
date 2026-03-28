@@ -39,7 +39,11 @@ const userSchema = new Schema(
       project: String,
       title: String,
       joining_year: Number,
-      referrer: String
+      referrer: String,
+      referrer_user_id: {
+        type: String,
+        index: true
+      }
     },
     working_experiences: [workingExperienceSchema],
     created_at: Date,

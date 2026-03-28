@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
+  UserReferrerCandidate,
+  UserReferrerCandidatesResponse,
   UserCurrentSiteOptionsResponse,
+  UserReferrerSummary,
   UserReferrerOptionsResponse,
   UserWorkingExperienceInput,
   UserSiteConnectionsResponse,
@@ -129,10 +132,88 @@ export async function listReferrerOptions(): Promise<UserReferrerOptionsResponse
   };
 }
 
+export async function listReferrerCandidates(): Promise<UserReferrerCandidatesResponse> {
+  const users = await UserModel.find(
+    {
+      $or: [
+        { "personal_info.nickname": { $exists: true, $ne: null } },
+        { "personal_info.fullname": { $exists: true, $ne: null } }
+      ]
+    },
+    {
+      _id: 1,
+      "personal_info.nickname": 1,
+      "personal_info.fullname": 1
+    }
+  )
+    .sort({ "personal_info.nickname": 1, "personal_info.fullname": 1, _id: 1 })
+    .lean<
+      Array<{
+        _id: mongoose.Types.ObjectId;
+        personal_info?: {
+          nickname?: string | null;
+          fullname?: string | null;
+        };
+      }>
+    >();
+
+  const items = users
+    .map((user) => serializeReferrerCandidate(user))
+    .filter((item): item is UserReferrerCandidate => Boolean(item));
+
+  return {
+    items
+  };
+}
+
+export async function getReferrerSummary(
+  _referrer: string,
+  referrerUserId?: string | null
+): Promise<UserReferrerSummary | null> {
+  const normalizedReferrerUserId = normalizeObjectIdString(referrerUserId);
+
+  if (!normalizedReferrerUserId) {
+    return null;
+  }
+
+  const referrerUser = await UserModel.findById(
+    normalizedReferrerUserId,
+    {
+      _id: 1,
+      "personal_info.fullname": 1,
+      "working_info.title": 1
+    }
+  )
+    .lean<
+      | {
+          _id: mongoose.Types.ObjectId;
+          personal_info?: {
+            fullname?: string | null;
+          };
+          working_info?: {
+            title?: string | null;
+          };
+        }
+      | null
+      | null
+    >();
+
+  if (!referrerUser) {
+    return null;
+  }
+
+  return {
+    id: referrerUser._id.toString(),
+    fullname: referrerUser.personal_info?.fullname ?? null,
+    title: referrerUser.working_info?.title ?? null
+  };
+}
+
 export async function listUsersByReferrer(
   referrer: string,
   limit: number,
-  page: number
+  page: number,
+  referrerUserId?: string | null
 ): Promise<UserConnectionsResponse> {
   const normalizedReferrer = referrer.trim();
 
@@ -148,6 +229,7 @@ export async function listUsersByReferrer(
   const normalizedPage = Math.max(page, 1);
   const skip = (normalizedPage - 1) * normalizedLimit;
   const referrerRegex = new RegExp(`^${escapeRegex(normalizedReferrer)}$`, "i");
+  const normalizedReferrerUserId = normalizeObjectIdString(referrerUserId);
   const projection = {
     _id: 1,
     "personal_info.fullname": 1,
@@ -157,14 +239,42 @@ export async function listUsersByReferrer(
     "working_info.current_site": 1,
     "working_info.current_site_other": 1
   } as const;
+  let resolvedReferrerLabel = normalizedReferrer;
+  let filter: Record<string, unknown> = {
+    "working_info.referrer": referrerRegex
+  };
+
+  if (normalizedReferrerUserId) {
+    filter = {
+      "working_info.referrer_user_id": normalizedReferrerUserId
+    };
+
+    const referrerUser = await UserModel.findById(
+      normalizedReferrerUserId,
+      {
+        "personal_info.nickname": 1,
+        "personal_info.fullname": 1
+      }
+    ).lean<
+      | {
+          personal_info?: {
+            nickname?: string | null;
+            fullname?: string | null;
+          };
+        }
+      | null
+    >();
+
+    if (referrerUser) {
+      resolvedReferrerLabel =
+        buildReferrerSnapshot(referrerUser.personal_info) ??
+        extractShortName(referrerUser.personal_info?.fullname) ??
+        resolvedReferrerLabel;
+    }
+  }
 
   const [items, total] = await Promise.all([
-    UserModel.find(
-      {
-        "working_info.referrer": referrerRegex
-      },
-      projection
-    )
+    UserModel.find(filter, projection)
       .sort({ "personal_info.fullname": 1, _id: 1 })
       .skip(skip)
       .limit(normalizedLimit)
@@ -183,13 +293,11 @@ export async function listUsersByReferrer(
           };
         }>
       >(),
-    UserModel.countDocuments({
-      "working_info.referrer": referrerRegex
-    })
+    UserModel.countDocuments(filter)
   ]);
 
   return {
-    referrer: normalizedReferrer,
+    referrer: resolvedReferrerLabel,
     items: items.map((user) => ({
       id: user._id.toString(),
       fullname: user.personal_info?.fullname ?? null,
@@ -374,6 +482,10 @@ export async function updateUserByLineUserId(
   const updates: Record<string, string | number | Date | null> = {
     updated_at: new Date()
   };
+  const hasReferrerUserIdInput = "referrerUserId" in input;
+  const normalizedReferrerUserId = hasReferrerUserIdInput
+    ? normalizeObjectIdString(input.referrerUserId)
+    : undefined;
 
   if ("fullname" in input) {
     updates["personal_info.fullname"] = normalizeString(input.fullname);
@@ -399,8 +511,50 @@ export async function updateUserByLineUserId(
     updates["working_info.title"] = normalizeString(input.title);
   }
 
-  if ("referrer" in input) {
-    updates["working_info.referrer"] = normalizeString(input.referrer);
+  if (hasReferrerUserIdInput && input.referrerUserId && !normalizedReferrerUserId) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "InvalidReferrerUserId",
+      message: "Referrer user id must be a valid MongoDB ObjectId"
+    });
+  }
+
+  if (normalizedReferrerUserId) {
+    const referrerUser = await UserModel.findById(
+      normalizedReferrerUserId,
+      {
+        "personal_info.nickname": 1,
+        "personal_info.fullname": 1
+      }
+    ).lean<
+      | {
+          personal_info?: {
+            nickname?: string | null;
+            fullname?: string | null;
+          };
+        }
+      | null
+    >();
+
+    if (!referrerUser) {
+      throw new HttpError({
+        statusCode: 404,
+        code: "ReferrerUserNotFound",
+        message: "Selected referrer user was not found"
+      });
+    }
+
+    updates["working_info.referrer_user_id"] = normalizedReferrerUserId;
+    updates["working_info.referrer"] =
+      buildReferrerSnapshot(referrerUser.personal_info) ?? null;
+  } else {
+    if ("referrer" in input) {
+      updates["working_info.referrer"] = normalizeString(input.referrer);
+    }
+
+    if (hasReferrerUserIdInput) {
+      updates["working_info.referrer_user_id"] = null;
+    }
   }
 
   if ("joiningYear" in input) {
@@ -590,7 +744,8 @@ function serializeUser(user: UserDocument): UserRecord {
           project: user.working_info.project ?? null,
           title: user.working_info.title ?? null,
           joiningYear: user.working_info.joining_year ?? null,
-          referrer: user.working_info.referrer ?? null
+          referrer: user.working_info.referrer ?? null,
+          referrerUserId: user.working_info.referrer_user_id ?? null
         }
       : undefined,
     workingExperiences: Array.isArray(user.working_experiences)
@@ -637,6 +792,61 @@ function serializeUser(user: UserDocument): UserRecord {
     hasPurchasedTicket: Boolean(user.has_purchased_ticket),
     sections
   };
+}
+
+function serializeReferrerCandidate(user: {
+  _id: mongoose.Types.ObjectId;
+  personal_info?: {
+    nickname?: string | null;
+    fullname?: string | null;
+  };
+}): UserReferrerCandidate | null {
+  const nickname = normalizeString(user.personal_info?.nickname);
+  const fullname = normalizeString(user.personal_info?.fullname);
+  const shortName = extractShortName(fullname);
+
+  if (!nickname && !fullname) {
+    return null;
+  }
+
+  return {
+    id: user._id.toString(),
+    nickname,
+    fullname,
+    shortName
+  };
+}
+
+function buildReferrerSnapshot(personalInfo?: {
+  nickname?: string | null;
+  fullname?: string | null;
+}) {
+  return (
+    normalizeString(personalInfo?.nickname) ??
+    extractShortName(personalInfo?.fullname) ??
+    normalizeString(personalInfo?.fullname)
+  );
+}
+
+function extractShortName(value?: string | null) {
+  const normalized = normalizeString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const [firstPart] = normalized.split(/\s+/);
+  return firstPart ?? normalized;
+}
+
+function normalizeObjectIdString(value?: string | null) {
+  const normalized = normalizeString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  return mongoose.isValidObjectId(normalized) ? normalized : null;
 }
 
 function buildUserSections(user: UserDocument) {

@@ -30,6 +30,7 @@ const liffProfileUpdateRequestSchema = z.object({
     bio: z.string().trim().min(1).max(500).optional().nullable(),
     title: z.string().trim().min(1).max(120).optional().nullable(),
     referrer: z.string().trim().min(1).max(120).optional().nullable(),
+    referrerUserId: z.string().trim().min(1).optional().nullable(),
     joiningYear: z.coerce.number().int().min(1900).max(3000).optional().nullable()
   })
 });

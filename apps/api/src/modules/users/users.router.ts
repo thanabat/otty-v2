@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
+  getReferrerSummary,
   getUserById,
   getUserByLineUserId,
   listCurrentSiteOptions,
+  listReferrerCandidates,
   listReferrerOptions,
   listUsersByCurrentSite,
   listUsersByJoiningYear,
@@ -14,6 +16,14 @@ import {
 const listUsersQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   page: z.coerce.number().int().positive().default(1)
+});
+
+const referrerListQuerySchema = listUsersQuerySchema.extend({
+  referrerUserId: z.string().trim().min(1).optional()
+});
+
+const referrerSummaryQuerySchema = z.object({
+  referrerUserId: z.string().trim().min(1).optional()
 });
 
 const lineUserParamsSchema = z.object({
@@ -76,14 +86,48 @@ usersRouter.get("/users/referrers", async (_request, response, next) => {
   }
 });
 
+usersRouter.get("/users/referrer-candidates", async (_request, response, next) => {
+  try {
+    const payload = await listReferrerCandidates();
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/referrer-profile/:referrer", async (request, response, next) => {
+  try {
+    const params = referrerParamsSchema.parse(request.params);
+    const query = referrerSummaryQuerySchema.parse(request.query);
+    const payload = await getReferrerSummary(
+      params.referrer,
+      query.referrerUserId
+    );
+
+    if (!payload) {
+      response.status(404).json({
+        code: "ReferrerProfileNotFound",
+        message: "Referrer profile was not found"
+      });
+      return;
+    }
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
 usersRouter.get("/users/referrer/:referrer", async (request, response, next) => {
   try {
     const params = referrerParamsSchema.parse(request.params);
-    const query = listUsersQuerySchema.parse(request.query);
+    const query = referrerListQuerySchema.parse(request.query);
     const payload = await listUsersByReferrer(
       params.referrer,
       query.limit,
-      query.page
+      query.page,
+      query.referrerUserId
     );
 
     response.json(payload);
