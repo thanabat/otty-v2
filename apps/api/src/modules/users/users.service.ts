@@ -82,6 +82,18 @@ export async function updateUserByLineUserId(
     updates["personal_info.email"] = normalizeString(input.email);
   }
 
+  if ("phone" in input) {
+    updates["personal_info.phone"] = normalizeString(input.phone);
+  }
+
+  if ("bio" in input) {
+    updates["personal_info.bio"] = normalizeString(input.bio);
+  }
+
+  if ("title" in input) {
+    updates["working_info.title"] = normalizeString(input.title);
+  }
+
   if ("joiningYear" in input) {
     updates["working_info.joining_year"] =
       typeof input.joiningYear === "number" ? input.joiningYear : null;
@@ -122,7 +134,9 @@ function serializeUser(user: UserDocument): UserRecord {
           fullname: user.personal_info.fullname ?? null,
           nickname: user.personal_info.nickname ?? null,
           basecampName: user.personal_info.basecamp_name ?? null,
-          email: user.personal_info.email ?? null
+          email: user.personal_info.email ?? null,
+          phone: user.personal_info.phone ?? null,
+          bio: user.personal_info.bio ?? null
         }
       : undefined,
     workingInfo: user.working_info
@@ -130,6 +144,7 @@ function serializeUser(user: UserDocument): UserRecord {
           currentSite: user.working_info.current_site ?? null,
           currentSiteOther: user.working_info.current_site_other ?? null,
           project: user.working_info.project ?? null,
+          title: user.working_info.title ?? null,
           joiningYear: user.working_info.joining_year ?? null,
           referrer: user.working_info.referrer ?? null
         }

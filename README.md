@@ -118,6 +118,12 @@ curl http://localhost:4000/health
 curl http://localhost:4000/ready
 ```
 
+To backfill new profile fields on the existing `users` collection without overwriting existing values (`personal_info.phone`, `personal_info.bio`, `working_info.title`):
+
+```bash
+npm run db:backfill:user-profile-fields
+```
+
 ## Deployment Expectation
 
 Deploy the two apps as separate services:

@@ -27,6 +27,9 @@ type EditFormState = {
   fullname: string;
   nickname: string;
   email: string;
+  phone: string;
+  bio: string;
+  title: string;
   joiningYear: string;
 };
 
@@ -39,6 +42,9 @@ export function LiveProfilePage() {
     fullname: "",
     nickname: "",
     email: "",
+    phone: "",
+    bio: "",
+    title: "",
     joiningYear: ""
   });
 
@@ -135,6 +141,9 @@ export function LiveProfilePage() {
         fullname: normalizeFormText(form.fullname),
         nickname: normalizeFormText(form.nickname),
         email: normalizeFormText(form.email),
+        phone: normalizeFormText(form.phone),
+        bio: normalizeFormText(form.bio),
+        title: normalizeFormText(form.title),
         joiningYear: normalizeJoiningYear(form.joiningYear)
       });
 
@@ -238,6 +247,9 @@ export function LiveProfilePage() {
                 </p>
                 <div className="phone-profile-card__meta-stack">
                   <p className="phone-profile-card__meta-line">
+                    Nick Name: {user.personalInfo?.nickname || "-"}
+                  </p>
+                  <p className="phone-profile-card__meta-line">
                     Joining Year: {joiningYear ?? "-"}
                   </p>
                   <p className="phone-profile-card__meta-line">
@@ -245,6 +257,14 @@ export function LiveProfilePage() {
                     {yearsWorked !== null
                       ? `${yearsWorked} year${yearsWorked === 1 ? "" : "s"}`
                       : "-"}
+                  </p>
+                  {user.personalInfo?.phone ? (
+                    <p className="phone-profile-card__meta-line">
+                      Phone: {user.personalInfo.phone}
+                    </p>
+                  ) : null}
+                  <p className="phone-profile-card__meta-line">
+                    Title: {user.workingInfo?.title || "-"}
                   </p>
                 </div>
               </div>
@@ -258,6 +278,10 @@ export function LiveProfilePage() {
             </div>
 
             <div className="phone-profile-card__footer">
+              {user.personalInfo?.bio ? (
+                <p className="phone-profile-card__bio">{user.personalInfo.bio}</p>
+              ) : null}
+
               <div className="button-row button-row--stack">
                 <button
                   className="action-button action-button--secondary phone-profile-card__action"
@@ -340,6 +364,48 @@ export function LiveProfilePage() {
                   }
                   type="email"
                   value={form.email}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Phone</span>
+                <input
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      phone: event.target.value
+                    }))
+                  }
+                  type="text"
+                  value={form.phone}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Bio</span>
+                <textarea
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      bio: event.target.value
+                    }))
+                  }
+                  rows={4}
+                  value={form.bio}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Title</span>
+                <input
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      title: event.target.value
+                    }))
+                  }
+                  type="text"
+                  value={form.title}
                 />
               </label>
 
@@ -442,6 +508,9 @@ function createEditFormState(session: LiffLoginResponse): EditFormState {
     fullname: session.user.personalInfo?.fullname ?? "",
     nickname: session.user.personalInfo?.nickname ?? "",
     email: session.user.personalInfo?.email ?? "",
+    phone: session.user.personalInfo?.phone ?? "",
+    bio: session.user.personalInfo?.bio ?? "",
+    title: session.user.workingInfo?.title ?? "",
     joiningYear: session.user.workingInfo?.joiningYear
       ? String(session.user.workingInfo.joiningYear)
       : ""

@@ -10,12 +10,15 @@ const userSchema = new Schema(
       fullname: String,
       nickname: String,
       basecamp_name: String,
-      email: String
+      email: String,
+      phone: String,
+      bio: String
     },
     working_info: {
       current_site: String,
       current_site_other: String,
       project: String,
+      title: String,
       joining_year: Number,
       referrer: String
     },

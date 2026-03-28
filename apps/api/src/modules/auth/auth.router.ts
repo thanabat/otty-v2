@@ -17,6 +17,9 @@ const liffProfileUpdateRequestSchema = z.object({
     fullname: z.string().trim().min(1).max(120).optional().nullable(),
     nickname: z.string().trim().min(1).max(120).optional().nullable(),
     email: z.string().trim().email().max(160).optional().nullable(),
+    phone: z.string().trim().min(1).max(40).optional().nullable(),
+    bio: z.string().trim().min(1).max(500).optional().nullable(),
+    title: z.string().trim().min(1).max(120).optional().nullable(),
     joiningYear: z.coerce.number().int().min(1900).max(3000).optional().nullable()
   })
 });
