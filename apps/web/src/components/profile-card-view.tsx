@@ -36,6 +36,7 @@ export function ProfileCardView({
     user.workingInfo?.currentSite?.trim() ||
     user.workingInfo?.currentSiteOther?.trim() ||
     "";
+  const showVerifyBadge = Boolean(user.personalInfo?.pictureUrl);
 
   return (
     <section className="profile-spotlight">
@@ -67,13 +68,15 @@ export function ProfileCardView({
                 {user.workingInfo?.title || "No title"}
               </p>
             </div>
-            <img
-              alt="Verified profile"
-              className="verify-badge"
-              height={44}
-              src="/verify.svg"
-              width={44}
-            />
+            {showVerifyBadge ? (
+              <img
+                alt="Verified profile"
+                className="verify-badge"
+                height={44}
+                src="/verify.svg"
+                width={44}
+              />
+            ) : null}
           </div>
 
           <div className="phone-profile-card__footer">
