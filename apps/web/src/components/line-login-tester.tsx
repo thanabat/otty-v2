@@ -189,7 +189,7 @@ export function LineLoginTester() {
               className={`action-button action-button--secondary${
                 state.isLoggedIn ? "" : " action-button--disabled-link"
               }`}
-              href={state.isLoggedIn ? "/profile" : "#"}
+              href={state.isLoggedIn ? "/dev/profile" : "#"}
               onClick={(event) => {
                 if (!state.isLoggedIn) {
                   event.preventDefault();

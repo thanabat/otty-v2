@@ -261,9 +261,9 @@ export function EmployeeProfilePage() {
           )}
 
           <p className="helper-text">
-            ดูหน้า debug เพิ่มเติมได้ที่{" "}
-            <Link className="inline-link" href="/debug/line">
-              /debug/line
+            กลับไปหน้า login check ได้ที่{" "}
+            <Link className="inline-link" href="/dev/line">
+              /dev/line
             </Link>
           </p>
         </article>

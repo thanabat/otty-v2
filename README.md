@@ -223,8 +223,9 @@ Use the current implementation to verify your LINE setup end to end.
 
 Useful local routes:
 
-- `/profile`: primary LIFF profile page backed by MongoDB `users`
-- `/debug/line`: debug page for raw LIFF token/profile inspection
+- `/dev`: entry page for prototype flows used during development
+- `/dev/line`: Step 1 LIFF login check and LINE profile inspection
+- `/dev/profile`: Step 2 profile resolver backed by MongoDB `users`
 
 If you want the HTTPS LIFF proxy for local testing, run:
 

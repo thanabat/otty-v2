@@ -1,5 +1,5 @@
-import { LineLoginTester } from "../../../components/line-login-tester";
+import { redirect } from "next/navigation";
 
-export default function LineDebugPage() {
-  return <LineLoginTester />;
+export default function LegacyDebugLinePage() {
+  redirect("/dev/line");
 }

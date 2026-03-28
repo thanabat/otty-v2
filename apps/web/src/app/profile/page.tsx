@@ -1,5 +1,5 @@
-import { EmployeeProfilePage } from "../../components/employee-profile-page";
+import { redirect } from "next/navigation";
 
-export default function ProfilePage() {
-  return <EmployeeProfilePage />;
+export default function LegacyProfilePage() {
+  redirect("/dev/profile");
 }
