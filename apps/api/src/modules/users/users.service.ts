@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import type { UserRecord, UsersListResponse } from "@otty/shared";
+import type {
+  UserProfileUpdateInput,
+  UserRecord,
+  UsersListResponse
+} from "@otty/shared";
 import { HttpError } from "../../lib/http-error";
 import { UserModel, type UserDocument } from "./users.model";
 
@@ -56,6 +60,55 @@ export async function getUserByLineUserId(lineUserId: string) {
   }
 
   return serializeUser(user);
+}
+
+export async function updateUserByLineUserId(
+  lineUserId: string,
+  input: UserProfileUpdateInput
+) {
+  const updates: Record<string, string | number | Date | null> = {
+    updated_at: new Date()
+  };
+
+  if ("fullname" in input) {
+    updates["personal_info.fullname"] = normalizeString(input.fullname);
+  }
+
+  if ("nickname" in input) {
+    updates["personal_info.nickname"] = normalizeString(input.nickname);
+  }
+
+  if ("email" in input) {
+    updates["personal_info.email"] = normalizeString(input.email);
+  }
+
+  if ("joiningYear" in input) {
+    updates["working_info.joining_year"] =
+      typeof input.joiningYear === "number" ? input.joiningYear : null;
+  }
+
+  const user = await UserModel.findOneAndUpdate(
+    {
+      line_user_id: lineUserId
+    },
+    {
+      $set: updates
+    },
+    {
+      new: true,
+      lean: true
+    }
+  );
+
+  if (!user) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  return serializeUser(user as UserDocument);
 }
 
 function serializeUser(user: UserDocument): UserRecord {
@@ -202,4 +255,13 @@ function toLabel(input: string) {
 
 function toTitleCase(input: string) {
   return toLabel(input);
+}
+
+function normalizeString(value: string | null | undefined) {
+  if (value == null) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }

@@ -1,8 +1,15 @@
 import { z } from "zod";
-import type { LiffLoginResponse, VerifiedLineProfileResponse } from "@otty/shared";
+import type {
+  LiffLoginResponse,
+  UserProfileUpdateInput,
+  VerifiedLineProfileResponse
+} from "@otty/shared";
 import { env } from "../../config/env";
 import { HttpError } from "../../lib/http-error";
-import { getUserByLineUserId } from "../users/users.service";
+import {
+  getUserByLineUserId,
+  updateUserByLineUserId
+} from "../users/users.service";
 
 const lineAccessTokenVerificationSchema = z.object({
   client_id: z.string(),
@@ -86,6 +93,23 @@ export async function loginWithLiff(
 ): Promise<LiffLoginResponse> {
   const verified = await getVerifiedLineProfile(accessToken);
   const user = await getUserByLineUserId(verified.profile.userId);
+
+  return {
+    lineProfile: verified.profile,
+    token: verified.token,
+    user
+  };
+}
+
+export async function updateProfileWithLiff(
+  accessToken: string,
+  profileInput: UserProfileUpdateInput
+): Promise<LiffLoginResponse> {
+  const verified = await getVerifiedLineProfile(accessToken);
+  const user = await updateUserByLineUserId(
+    verified.profile.userId,
+    profileInput
+  );
 
   return {
     lineProfile: verified.profile,

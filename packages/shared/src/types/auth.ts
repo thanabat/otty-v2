@@ -1,4 +1,5 @@
 import type { UserRecord } from "./user";
+import type { UserProfileUpdateInput } from "./user";
 
 export interface LineProfileRequest {
   accessToken: string;
@@ -28,4 +29,8 @@ export interface LiffLoginResponse {
     scope: string[];
   };
   user: UserRecord;
+}
+
+export interface LiffProfileUpdateRequest extends LineProfileRequest {
+  profile: UserProfileUpdateInput;
 }

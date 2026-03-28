@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { LiffLoginResponse } from "@otty/shared";
+import type { LiffLoginResponse, UserProfileUpdateInput } from "@otty/shared";
 import { webEnv } from "../lib/env";
 
 type LiveProfileState = {
@@ -10,6 +10,7 @@ type LiveProfileState = {
   isLoggedIn: boolean;
   isInClient: boolean;
   error: string | null;
+  accessToken: string | null;
   session: LiffLoginResponse | null;
 };
 
@@ -18,11 +19,28 @@ const initialState: LiveProfileState = {
   isLoggedIn: false,
   isInClient: false,
   error: null,
+  accessToken: null,
   session: null
+};
+
+type EditFormState = {
+  fullname: string;
+  nickname: string;
+  email: string;
+  joiningYear: string;
 };
 
 export function LiveProfilePage() {
   const [state, setState] = useState(initialState);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [form, setForm] = useState<EditFormState>({
+    fullname: "",
+    nickname: "",
+    email: "",
+    joiningYear: ""
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -67,8 +85,10 @@ export function LiveProfilePage() {
             isLoggedIn: true,
             isInClient: liff.isInClient(),
             error: null,
+            accessToken,
             session
           });
+          setForm(createEditFormState(session));
         }
       } catch (error) {
         if (!cancelled) {
@@ -80,6 +100,7 @@ export function LiveProfilePage() {
               error instanceof Error
                 ? error.message
                 : "Unable to load employee profile",
+            accessToken: null,
             session: null
           });
         }
@@ -98,6 +119,38 @@ export function LiveProfilePage() {
 
     liff.logout();
     window.location.reload();
+  }
+
+  async function handleSaveProfile() {
+    if (!state.accessToken || !state.session) {
+      setSaveError("Current session is missing an access token");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const updatedSession = await updateLiffProfile(state.accessToken, {
+        fullname: normalizeFormText(form.fullname),
+        nickname: normalizeFormText(form.nickname),
+        email: normalizeFormText(form.email),
+        joiningYear: normalizeJoiningYear(form.joiningYear)
+      });
+
+      setState((current) => ({
+        ...current,
+        session: updatedSession
+      }));
+      setForm(createEditFormState(updatedSession));
+      setIsEditing(false);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Unable to update profile"
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (state.isInitializing) {
@@ -205,17 +258,133 @@ export function LiveProfilePage() {
             </div>
 
             <div className="phone-profile-card__footer">
-              <button
-                className="action-button phone-profile-card__logout"
-                onClick={() => void handleLogout()}
-                type="button"
-              >
-                Logout
-              </button>
+              <div className="button-row button-row--stack">
+                <button
+                  className="action-button action-button--secondary phone-profile-card__action"
+                  onClick={() => {
+                    setForm(createEditFormState(state.session!));
+                    setSaveError(null);
+                    setIsEditing(true);
+                  }}
+                  type="button"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  className="action-button phone-profile-card__logout"
+                  onClick={() => void handleLogout()}
+                  type="button"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </article>
       </section>
+
+      {isEditing ? (
+        <section className="profile-editor-overlay">
+          <div
+            aria-hidden="true"
+            className="profile-editor-overlay__backdrop"
+            onClick={() => {
+              if (!isSaving) {
+                setIsEditing(false);
+                setSaveError(null);
+              }
+            }}
+          />
+
+          <div className="profile-editor-sheet">
+            <p className="eyebrow">Edit Profile</p>
+            <h2>Edit the fields shown on this card</h2>
+
+            <div className="editor-form">
+              <label className="editor-field">
+                <span>Fullname</span>
+                <input
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      fullname: event.target.value
+                    }))
+                  }
+                  type="text"
+                  value={form.fullname}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Nick Name</span>
+                <input
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      nickname: event.target.value
+                    }))
+                  }
+                  type="text"
+                  value={form.nickname}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Email</span>
+                <input
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      email: event.target.value
+                    }))
+                  }
+                  type="email"
+                  value={form.email}
+                />
+              </label>
+
+              <label className="editor-field">
+                <span>Joining Year</span>
+                <input
+                  inputMode="numeric"
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      joiningYear: event.target.value
+                    }))
+                  }
+                  type="text"
+                  value={form.joiningYear}
+                />
+              </label>
+            </div>
+
+            {saveError ? <p className="callout callout--error">{saveError}</p> : null}
+
+            <div className="button-row button-row--editor">
+              <button
+                className="action-button action-button--ghost"
+                disabled={isSaving}
+                onClick={() => {
+                  setIsEditing(false);
+                  setSaveError(null);
+                }}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="action-button"
+                disabled={isSaving}
+                onClick={() => void handleSaveProfile()}
+                type="button"
+              >
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
@@ -240,4 +409,57 @@ async function fetchLiffLogin(accessToken: string) {
   }
 
   return (await response.json()) as LiffLoginResponse;
+}
+
+async function updateLiffProfile(
+  accessToken: string,
+  profile: UserProfileUpdateInput
+) {
+  const response = await fetch("/api/auth/liff/profile", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      accessToken,
+      profile
+    })
+  });
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as
+      | { message?: string }
+      | null;
+
+    throw new Error(errorPayload?.message ?? "Unable to update profile");
+  }
+
+  return (await response.json()) as LiffLoginResponse;
+}
+
+function createEditFormState(session: LiffLoginResponse): EditFormState {
+  return {
+    fullname: session.user.personalInfo?.fullname ?? "",
+    nickname: session.user.personalInfo?.nickname ?? "",
+    email: session.user.personalInfo?.email ?? "",
+    joiningYear: session.user.workingInfo?.joiningYear
+      ? String(session.user.workingInfo.joiningYear)
+      : ""
+  };
+}
+
+function normalizeFormText(value: string) {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function normalizeJoiningYear(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
 }

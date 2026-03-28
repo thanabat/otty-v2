@@ -42,3 +42,10 @@ export interface UsersListResponse {
   total: number;
   limit: number;
 }
+
+export interface UserProfileUpdateInput {
+  fullname?: string | null;
+  nickname?: string | null;
+  email?: string | null;
+  joiningYear?: number | null;
+}
