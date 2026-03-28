@@ -804,6 +804,62 @@ li + li {
   font: inherit;
 }
 
+.combobox-field {
+  position: relative;
+}
+
+.combobox-field__input {
+  width: 100%;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  padding: 14px 16px;
+  font: inherit;
+}
+
+.combobox-field__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(22, 22, 22, 0.98);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.combobox-field__option {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #f7f4ef;
+  padding: 13px 16px;
+  text-align: left;
+  font: inherit;
+}
+
+.combobox-field__option + .combobox-field__option {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.combobox-field__option--active,
+.combobox-field__option:hover {
+  background: rgba(6, 199, 85, 0.14);
+}
+
+.combobox-field__empty {
+  margin: 0;
+  padding: 14px 16px;
+  color: rgba(247, 244, 239, 0.56);
+  font-size: 0.95rem;
+}
+
 .editor-field textarea {
   width: 100%;
   appearance: none;
@@ -817,6 +873,11 @@ li + li {
 }
 
 .editor-field input:focus {
+  outline: 2px solid rgba(6, 199, 85, 0.42);
+  outline-offset: 1px;
+}
+
+.combobox-field__input:focus {
   outline: 2px solid rgba(6, 199, 85, 0.42);
   outline-offset: 1px;
 }

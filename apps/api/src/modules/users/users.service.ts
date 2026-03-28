@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
+  UserCurrentSiteOptionsResponse,
   UserSiteConnectionsResponse,
   UserYearConnectionsResponse,
   UserProfileUpdateInput,
@@ -94,6 +95,23 @@ export async function syncLinePictureByLineUserId(
   }
 
   return serializeUser(user as UserDocument);
+}
+
+export async function listCurrentSiteOptions(): Promise<UserCurrentSiteOptionsResponse> {
+  const [sites, siteOthers] = await Promise.all([
+    UserModel.distinct("working_info.current_site"),
+    UserModel.distinct("working_info.current_site_other")
+  ]);
+
+  const items = [...sites, ...siteOthers]
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .sort((left, right) => left.localeCompare(right));
+
+  return {
+    items
+  };
 }
 
 export async function listUsersByReferrer(
@@ -364,6 +382,11 @@ export async function updateUserByLineUserId(
 
   if ("title" in input) {
     updates["working_info.title"] = normalizeString(input.title);
+  }
+
+  if ("currentSite" in input) {
+    updates["working_info.current_site"] = normalizeString(input.currentSite);
+    updates["working_info.current_site_other"] = null;
   }
 
   if ("joiningYear" in input) {

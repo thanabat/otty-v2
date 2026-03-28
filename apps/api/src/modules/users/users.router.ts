@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   getUserById,
   getUserByLineUserId,
+  listCurrentSiteOptions,
   listUsersByCurrentSite,
   listUsersByJoiningYear,
   listUsers,
@@ -47,6 +48,16 @@ usersRouter.get("/users/line/:lineUserId", async (request, response, next) => {
   try {
     const params = lineUserParamsSchema.parse(request.params);
     const payload = await getUserByLineUserId(params.lineUserId);
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/current-sites", async (_request, response, next) => {
+  try {
+    const payload = await listCurrentSiteOptions();
 
     response.json(payload);
   } catch (error) {

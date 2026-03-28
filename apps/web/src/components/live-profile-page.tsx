@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { LiffLoginResponse, UserProfileUpdateInput } from "@otty/shared";
+import { useEffect, useRef, useState } from "react";
+import type {
+  LiffLoginResponse,
+  UserCurrentSiteOptionsResponse,
+  UserProfileUpdateInput
+} from "@otty/shared";
 import { ProfileCardView } from "./profile-card-view";
 import { ensureLiffSession, logoutLiff } from "../lib/liff-auth";
 
@@ -32,6 +36,7 @@ type EditFormState = {
   bio: string;
   title: string;
   joiningYear: string;
+  currentSite: string;
 };
 
 export function LiveProfilePage() {
@@ -39,6 +44,9 @@ export function LiveProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [currentSiteOptions, setCurrentSiteOptions] = useState<string[]>([]);
+  const [isCurrentSiteMenuOpen, setIsCurrentSiteMenuOpen] = useState(false);
+  const currentSiteFieldRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<EditFormState>({
     fullname: "",
     nickname: "",
@@ -46,7 +54,8 @@ export function LiveProfilePage() {
     phone: "",
     bio: "",
     title: "",
-    joiningYear: ""
+    joiningYear: "",
+    currentSite: ""
   });
 
   useEffect(() => {
@@ -100,6 +109,30 @@ export function LiveProfilePage() {
   }, []);
 
   useEffect(() => {
+    if (!state.session) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadCurrentSiteOptions() {
+      try {
+        const items = await fetchCurrentSiteOptions();
+
+        if (!cancelled) {
+          setCurrentSiteOptions(items);
+        }
+      } catch {}
+    }
+
+    void loadCurrentSiteOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.session]);
+
+  useEffect(() => {
     if (!isEditing) {
       return;
     }
@@ -115,6 +148,37 @@ export function LiveProfilePage() {
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing || !isCurrentSiteMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!currentSiteFieldRef.current) {
+        return;
+      }
+
+      if (!currentSiteFieldRef.current.contains(event.target as Node)) {
+        setIsCurrentSiteMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isCurrentSiteMenuOpen, isEditing]);
+
+  const normalizedCurrentSiteQuery = form.currentSite.trim().toLowerCase();
+  const filteredCurrentSiteOptions = currentSiteOptions
+    .filter((item) =>
+      normalizedCurrentSiteQuery
+        ? item.toLowerCase().includes(normalizedCurrentSiteQuery)
+        : true
+    )
+    .slice(0, 8);
 
   async function handleLogout() {
     await logoutLiff();
@@ -137,7 +201,8 @@ export function LiveProfilePage() {
         phone: normalizeFormText(form.phone),
         bio: normalizeFormText(form.bio),
         title: normalizeFormText(form.title),
-        joiningYear: normalizeJoiningYear(form.joiningYear)
+        joiningYear: normalizeJoiningYear(form.joiningYear),
+        currentSite: normalizeFormText(form.currentSite)
       });
 
       setState((current) => ({
@@ -145,6 +210,7 @@ export function LiveProfilePage() {
         session: updatedSession
       }));
       setForm(createEditFormState(updatedSession));
+      setIsCurrentSiteMenuOpen(false);
       setIsEditing(false);
     } catch (error) {
       setSaveError(
@@ -228,6 +294,7 @@ export function LiveProfilePage() {
               onClick={() => {
                 setForm(createEditFormState(state.session!));
                 setSaveError(null);
+                setIsCurrentSiteMenuOpen(false);
                 setIsEditing(true);
               }}
               type="button"
@@ -361,6 +428,69 @@ export function LiveProfilePage() {
                   value={form.joiningYear}
                 />
               </label>
+
+              <label className="editor-field">
+                <span>Current Site</span>
+                <div className="combobox-field" ref={currentSiteFieldRef}>
+                  <input
+                    aria-autocomplete="list"
+                    aria-expanded={isCurrentSiteMenuOpen}
+                    aria-label="Current Site"
+                    className="combobox-field__input"
+                    onChange={(event) => {
+                      setForm((current) => ({
+                        ...current,
+                        currentSite: event.target.value
+                      }));
+                      setIsCurrentSiteMenuOpen(true);
+                    }}
+                    onFocus={() => {
+                      setIsCurrentSiteMenuOpen(true);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setIsCurrentSiteMenuOpen(false);
+                      }
+                    }}
+                    role="combobox"
+                    type="search"
+                    value={form.currentSite}
+                  />
+
+                  {isCurrentSiteMenuOpen ? (
+                    <div className="combobox-field__menu" role="listbox">
+                      {filteredCurrentSiteOptions.length > 0 ? (
+                        filteredCurrentSiteOptions.map((item) => (
+                          <button
+                            className={`combobox-field__option${
+                              form.currentSite === item
+                                ? " combobox-field__option--active"
+                                : ""
+                            }`}
+                            key={item}
+                            onClick={() => {
+                              setForm((current) => ({
+                                ...current,
+                                currentSite: item
+                              }));
+                              setIsCurrentSiteMenuOpen(false);
+                            }}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                            }}
+                            role="option"
+                            type="button"
+                          >
+                            {item}
+                          </button>
+                        ))
+                      ) : (
+                        <p className="combobox-field__empty">No matching site</p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </label>
             </div>
 
             {saveError ? <p className="callout callout--error">{saveError}</p> : null}
@@ -372,6 +502,7 @@ export function LiveProfilePage() {
                 onClick={() => {
                   setIsEditing(false);
                   setSaveError(null);
+                  setIsCurrentSiteMenuOpen(false);
                 }}
                 type="button"
               >
@@ -451,7 +582,11 @@ function createEditFormState(session: LiffLoginResponse): EditFormState {
     title: session.user.workingInfo?.title ?? "",
     joiningYear: session.user.workingInfo?.joiningYear
       ? String(session.user.workingInfo.joiningYear)
-      : ""
+      : "",
+    currentSite:
+      session.user.workingInfo?.currentSite ??
+      session.user.workingInfo?.currentSiteOther ??
+      ""
   };
 }
 
@@ -469,4 +604,18 @@ function normalizeJoiningYear(value: string) {
 
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function fetchCurrentSiteOptions() {
+  const response = await fetch("/api/users/current-sites", {
+    method: "GET",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load current site options");
+  }
+
+  const payload = (await response.json()) as UserCurrentSiteOptionsResponse;
+  return payload.items;
 }
