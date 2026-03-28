@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
   UserCurrentSiteOptionsResponse,
+  UserReferrerOptionsResponse,
   UserWorkingExperienceInput,
   UserSiteConnectionsResponse,
   UserYearConnectionsResponse,
@@ -111,6 +112,17 @@ export async function listCurrentSiteOptions(): Promise<UserCurrentSiteOptionsRe
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index)
     .sort((left, right) => left.localeCompare(right));
+
+  return {
+    items
+  };
+}
+
+export async function listReferrerOptions(): Promise<UserReferrerOptionsResponse> {
+  const referrers = await UserModel.distinct("working_info.referrer");
+  const items = uniqueNormalizedStringValues(referrers).sort((left, right) =>
+    left.localeCompare(right)
+  );
 
   return {
     items
@@ -385,6 +397,10 @@ export async function updateUserByLineUserId(
 
   if ("title" in input) {
     updates["working_info.title"] = normalizeString(input.title);
+  }
+
+  if ("referrer" in input) {
+    updates["working_info.referrer"] = normalizeString(input.referrer);
   }
 
   if ("joiningYear" in input) {
@@ -756,6 +772,32 @@ function normalizeCurrentSite(value: string | null | undefined) {
   }
 
   return normalized.toUpperCase();
+}
+
+function uniqueNormalizedStringValues(values: unknown[]) {
+  const seen = new Set<string>();
+  const items: string[] = [];
+
+  for (const value of values) {
+    const normalized = normalizeString(
+      typeof value === "string" ? value : null
+    );
+
+    if (!normalized) {
+      continue;
+    }
+
+    const dedupeKey = normalized.toLowerCase();
+
+    if (seen.has(dedupeKey)) {
+      continue;
+    }
+
+    seen.add(dedupeKey);
+    items.push(normalized);
+  }
+
+  return items;
 }
 
 function normalizeWorkingExperienceInput(input: UserWorkingExperienceInput) {

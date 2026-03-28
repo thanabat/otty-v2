@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { LiffLoginResponse, UserProfileUpdateInput } from "@otty/shared";
+import { useEffect, useRef, useState } from "react";
+import type {
+  LiffLoginResponse,
+  UserProfileUpdateInput,
+  UserReferrerOptionsResponse
+} from "@otty/shared";
 import { ProfileLoadingState } from "./loading-state";
 import { ProfileCardView } from "./profile-card-view";
 import { ensureLiffSession, logoutLiff } from "../lib/liff-auth";
@@ -32,6 +36,7 @@ type EditFormState = {
   phone: string;
   bio: string;
   title: string;
+  referrer: string;
   joiningYear: string;
 };
 
@@ -40,6 +45,9 @@ export function LiveProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [referrerOptions, setReferrerOptions] = useState<string[]>([]);
+  const [isReferrerMenuOpen, setIsReferrerMenuOpen] = useState(false);
+  const referrerFieldRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<EditFormState>({
     fullname: "",
     nickname: "",
@@ -47,6 +55,7 @@ export function LiveProfilePage() {
     phone: "",
     bio: "",
     title: "",
+    referrer: "",
     joiningYear: ""
   });
 
@@ -101,6 +110,30 @@ export function LiveProfilePage() {
   }, []);
 
   useEffect(() => {
+    if (!state.session) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadReferrerOptions() {
+      try {
+        const items = await fetchReferrerOptions();
+
+        if (!cancelled) {
+          setReferrerOptions(items);
+        }
+      } catch {}
+    }
+
+    void loadReferrerOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.session]);
+
+  useEffect(() => {
     if (!isEditing) {
       return;
     }
@@ -116,6 +149,37 @@ export function LiveProfilePage() {
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing || !isReferrerMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!referrerFieldRef.current) {
+        return;
+      }
+
+      if (!referrerFieldRef.current.contains(event.target as Node)) {
+        setIsReferrerMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isEditing, isReferrerMenuOpen]);
+
+  const normalizedReferrerQuery = form.referrer.trim().toLowerCase();
+  const filteredReferrerOptions = referrerOptions
+    .filter((item) =>
+      normalizedReferrerQuery
+        ? item.toLowerCase().includes(normalizedReferrerQuery)
+        : true
+    )
+    .slice(0, 8);
 
   async function handleLogout() {
     await logoutLiff();
@@ -138,6 +202,7 @@ export function LiveProfilePage() {
         phone: normalizeFormText(form.phone),
         bio: normalizeFormText(form.bio),
         title: normalizeFormText(form.title),
+        referrer: normalizeFormText(form.referrer),
         joiningYear: normalizeJoiningYear(form.joiningYear)
       });
 
@@ -146,6 +211,7 @@ export function LiveProfilePage() {
         session: updatedSession
       }));
       setForm(createEditFormState(updatedSession));
+      setIsReferrerMenuOpen(false);
       setIsEditing(false);
     } catch (error) {
       setSaveError(
@@ -226,6 +292,7 @@ export function LiveProfilePage() {
               onClick={() => {
                 setForm(createEditFormState(state.session!));
                 setSaveError(null);
+                setIsReferrerMenuOpen(false);
                 setIsEditing(true);
               }}
               type="button"
@@ -349,6 +416,72 @@ export function LiveProfilePage() {
               </label>
 
               <label className="editor-field">
+                <span>Referrer</span>
+                <div className="combobox-field" ref={referrerFieldRef}>
+                  <input
+                    autoComplete="off"
+                    aria-autocomplete="list"
+                    aria-expanded={isReferrerMenuOpen}
+                    aria-label="Referrer"
+                    className="combobox-field__input"
+                    onChange={(event) => {
+                      setForm((current) => ({
+                        ...current,
+                        referrer: event.target.value
+                      }));
+                      setIsReferrerMenuOpen(true);
+                    }}
+                    onFocus={() => {
+                      setIsReferrerMenuOpen(true);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setIsReferrerMenuOpen(false);
+                      }
+                    }}
+                    role="combobox"
+                    type="search"
+                    value={form.referrer}
+                  />
+
+                  {isReferrerMenuOpen ? (
+                    <div className="combobox-field__menu" role="listbox">
+                      {filteredReferrerOptions.length > 0 ? (
+                        filteredReferrerOptions.map((item) => (
+                          <button
+                            className={`combobox-field__option${
+                              form.referrer === item
+                                ? " combobox-field__option--active"
+                                : ""
+                            }`}
+                            key={item}
+                            onClick={() => {
+                              setForm((current) => ({
+                                ...current,
+                                referrer: item
+                              }));
+                              setIsReferrerMenuOpen(false);
+                            }}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                            }}
+                            role="option"
+                            type="button"
+                          >
+                            {item}
+                          </button>
+                        ))
+                      ) : (
+                        <p className="combobox-field__empty">
+                          No matching referrer. You can add a new one.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </label>
+
+              <label className="editor-field">
                 <span>Joining Year</span>
                 <input
                   inputMode="numeric"
@@ -376,6 +509,7 @@ export function LiveProfilePage() {
                 onClick={() => {
                   setIsEditing(false);
                   setSaveError(null);
+                  setIsReferrerMenuOpen(false);
                 }}
                 type="button"
               >
@@ -453,6 +587,7 @@ function createEditFormState(session: LiffLoginResponse): EditFormState {
     phone: session.user.personalInfo?.phone ?? "",
     bio: session.user.personalInfo?.bio ?? "",
     title: session.user.workingInfo?.title ?? "",
+    referrer: session.user.workingInfo?.referrer ?? "",
     joiningYear: session.user.workingInfo?.joiningYear
       ? String(session.user.workingInfo.joiningYear)
       : ""
@@ -473,4 +608,18 @@ function normalizeJoiningYear(value: string) {
 
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function fetchReferrerOptions() {
+  const response = await fetch("/api/users/referrers", {
+    method: "GET",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load referrer options");
+  }
+
+  const payload = (await response.json()) as UserReferrerOptionsResponse;
+  return payload.items;
 }

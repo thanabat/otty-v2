@@ -4,6 +4,7 @@ import {
   getUserById,
   getUserByLineUserId,
   listCurrentSiteOptions,
+  listReferrerOptions,
   listUsersByCurrentSite,
   listUsersByJoiningYear,
   listUsers,
@@ -58,6 +59,16 @@ usersRouter.get("/users/line/:lineUserId", async (request, response, next) => {
 usersRouter.get("/users/current-sites", async (_request, response, next) => {
   try {
     const payload = await listCurrentSiteOptions();
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/referrers", async (_request, response, next) => {
+  try {
+    const payload = await listReferrerOptions();
 
     response.json(payload);
   } catch (error) {

@@ -105,6 +105,10 @@ export interface UserCurrentSiteOptionsResponse {
   items: string[];
 }
 
+export interface UserReferrerOptionsResponse {
+  items: string[];
+}
+
 export interface UserProfileUpdateInput {
   fullname?: string | null;
   nickname?: string | null;
@@ -112,5 +116,6 @@ export interface UserProfileUpdateInput {
   phone?: string | null;
   bio?: string | null;
   title?: string | null;
+  referrer?: string | null;
   joiningYear?: number | null;
 }
