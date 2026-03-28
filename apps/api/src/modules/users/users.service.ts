@@ -65,6 +65,37 @@ export async function getUserByLineUserId(lineUserId: string) {
   return serializeUser(user);
 }
 
+export async function syncLinePictureByLineUserId(
+  lineUserId: string,
+  pictureUrl?: string | null
+) {
+  const user = await UserModel.findOneAndUpdate(
+    {
+      line_user_id: lineUserId
+    },
+    {
+      $set: {
+        "personal_info.picture_url": normalizeString(pictureUrl),
+        updated_at: new Date()
+      }
+    },
+    {
+      new: true,
+      lean: true
+    }
+  );
+
+  if (!user) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  return serializeUser(user as UserDocument);
+}
+
 export async function listUsersByReferrer(
   referrer: string,
   limit: number,
@@ -377,7 +408,8 @@ function serializeUser(user: UserDocument): UserRecord {
           basecampName: user.personal_info.basecamp_name ?? null,
           email: user.personal_info.email ?? null,
           phone: user.personal_info.phone ?? null,
-          bio: user.personal_info.bio ?? null
+          bio: user.personal_info.bio ?? null,
+          pictureUrl: user.personal_info.picture_url ?? null
         }
       : undefined,
     workingInfo: user.working_info

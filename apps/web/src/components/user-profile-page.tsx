@@ -170,6 +170,7 @@ export function UserProfilePage({
             ? `/years/${state.user.workingInfo.joiningYear}`
             : null
         }
+        pictureUrl={state.user.personalInfo?.pictureUrl}
         referrerHref={
           state.user.workingInfo?.referrer?.trim()
             ? `/connections/${encodeURIComponent(state.user.workingInfo.referrer.trim())}`

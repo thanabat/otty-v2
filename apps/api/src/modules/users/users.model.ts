@@ -12,7 +12,8 @@ const userSchema = new Schema(
       basecamp_name: String,
       email: String,
       phone: String,
-      bio: String
+      bio: String,
+      picture_url: String
     },
     working_info: {
       current_site: String,

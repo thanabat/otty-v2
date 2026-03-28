@@ -118,7 +118,7 @@ curl http://localhost:4000/health
 curl http://localhost:4000/ready
 ```
 
-To backfill new profile fields on the existing `users` collection without overwriting existing values (`personal_info.phone`, `personal_info.bio`, `working_info.title`):
+To backfill new profile fields on the existing `users` collection without overwriting existing values (`personal_info.phone`, `personal_info.bio`, `personal_info.picture_url`, `working_info.title`):
 
 ```bash
 npm run db:backfill:user-profile-fields

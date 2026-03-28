@@ -5,6 +5,7 @@ export interface UserPersonalInfo {
   email?: string | null;
   phone?: string | null;
   bio?: string | null;
+  pictureUrl?: string | null;
 }
 
 export interface UserWorkingInfo {

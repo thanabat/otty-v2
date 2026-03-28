@@ -7,7 +7,7 @@ import type {
 import { env } from "../../config/env";
 import { HttpError } from "../../lib/http-error";
 import {
-  getUserByLineUserId,
+  syncLinePictureByLineUserId,
   updateUserByLineUserId
 } from "../users/users.service";
 
@@ -92,7 +92,10 @@ export async function loginWithLiff(
   accessToken: string
 ): Promise<LiffLoginResponse> {
   const verified = await getVerifiedLineProfile(accessToken);
-  const user = await getUserByLineUserId(verified.profile.userId);
+  const user = await syncLinePictureByLineUserId(
+    verified.profile.userId,
+    verified.profile.pictureUrl
+  );
 
   return {
     lineProfile: verified.profile,
@@ -106,6 +109,10 @@ export async function updateProfileWithLiff(
   profileInput: UserProfileUpdateInput
 ): Promise<LiffLoginResponse> {
   const verified = await getVerifiedLineProfile(accessToken);
+  await syncLinePictureByLineUserId(
+    verified.profile.userId,
+    verified.profile.pictureUrl
+  );
   const user = await updateUserByLineUserId(
     verified.profile.userId,
     profileInput

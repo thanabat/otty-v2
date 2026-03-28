@@ -37,6 +37,7 @@ async function main() {
       $or: [
         { "personal_info.phone": { $exists: false } },
         { "personal_info.bio": { $exists: false } },
+        { "personal_info.picture_url": { $exists: false } },
         { "working_info.title": { $exists: false } }
       ]
     },
@@ -45,6 +46,9 @@ async function main() {
         $set: {
           "personal_info.phone": { $ifNull: ["$personal_info.phone", null] },
           "personal_info.bio": { $ifNull: ["$personal_info.bio", null] },
+          "personal_info.picture_url": {
+            $ifNull: ["$personal_info.picture_url", null]
+          },
           "working_info.title": { $ifNull: ["$working_info.title", null] }
         }
       }

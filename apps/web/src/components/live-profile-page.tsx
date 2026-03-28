@@ -216,7 +216,7 @@ export function LiveProfilePage() {
         }
         displayName={lineProfile.displayName}
         joiningYearHref={joiningYear ? `/years/${joiningYear}` : null}
-        pictureUrl={lineProfile.pictureUrl}
+        pictureUrl={user.personalInfo?.pictureUrl ?? lineProfile.pictureUrl}
         referrerHref={
           referrer ? `/connections/${encodeURIComponent(referrer)}` : null
         }
