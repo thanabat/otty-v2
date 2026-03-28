@@ -61,6 +61,13 @@ export interface UserConnectionsResponse {
   limit: number;
 }
 
+export interface UserSiteConnectionsResponse {
+  site: string;
+  items: UserConnectionItem[];
+  total: number;
+  limit: number;
+}
+
 export interface UserProfileUpdateInput {
   fullname?: string | null;
   nickname?: string | null;

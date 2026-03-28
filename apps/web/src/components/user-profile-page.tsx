@@ -9,6 +9,7 @@ import { ensureLiffSession } from "../lib/liff-auth";
 type UserProfilePageProps = {
   userId: string;
   referrer?: string;
+  site?: string;
 };
 
 type UserProfileState = {
@@ -17,7 +18,7 @@ type UserProfileState = {
   user: UserRecord | null;
 };
 
-export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
+export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps) {
   const [state, setState] = useState<UserProfileState>({
     isLoading: true,
     error: null,
@@ -28,8 +29,18 @@ export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
     let cancelled = false;
 
     async function bootstrap() {
-      const redirectPath = referrer
-        ? `/profile/${encodeURIComponent(userId)}?referrer=${encodeURIComponent(referrer)}`
+      const query = new URLSearchParams();
+
+      if (referrer) {
+        query.set("referrer", referrer);
+      }
+
+      if (site) {
+        query.set("site", site);
+      }
+
+      const redirectPath = query.size
+        ? `/profile/${encodeURIComponent(userId)}?${query.toString()}`
         : `/profile/${encodeURIComponent(userId)}`;
 
       try {
@@ -69,7 +80,7 @@ export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
     return () => {
       cancelled = true;
     };
-  }, [referrer, userId]);
+  }, [referrer, site, userId]);
 
   if (state.isLoading) {
     return (
@@ -95,7 +106,13 @@ export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
         <div className="button-row button-row--compact">
           <Link
             className="action-button action-button--secondary"
-            href={referrer ? `/connections/${encodeURIComponent(referrer)}` : "/profile"}
+            href={
+              site
+                ? `/sites/${encodeURIComponent(site)}`
+                : referrer
+                  ? `/connections/${encodeURIComponent(referrer)}`
+                  : "/profile"
+            }
           >
             Back
           </Link>
@@ -108,7 +125,13 @@ export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
     <div className="button-row button-row--stack">
       <Link
         className="action-button action-button--secondary phone-profile-card__action"
-        href={referrer ? `/connections/${encodeURIComponent(referrer)}` : "/profile"}
+        href={
+          site
+            ? `/sites/${encodeURIComponent(site)}`
+            : referrer
+              ? `/connections/${encodeURIComponent(referrer)}`
+              : "/profile"
+        }
       >
         Back
       </Link>
@@ -118,6 +141,16 @@ export function UserProfilePage({ userId, referrer }: UserProfilePageProps) {
   return (
     <main className="profile-stage">
       <ProfileCardView
+        currentSiteHref={
+          state.user.workingInfo?.currentSite?.trim() ||
+          state.user.workingInfo?.currentSiteOther?.trim()
+            ? `/sites/${encodeURIComponent(
+                state.user.workingInfo?.currentSite?.trim() ||
+                  state.user.workingInfo?.currentSiteOther?.trim() ||
+                  ""
+              )}`
+            : null
+        }
         displayName={state.user.personalInfo?.fullname || "Employee"}
         footer={footer}
         referrerHref={

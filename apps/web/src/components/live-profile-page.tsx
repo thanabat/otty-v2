@@ -202,10 +202,17 @@ export function LiveProfilePage() {
 
   const { user, lineProfile } = state.session;
   const referrer = user.workingInfo?.referrer?.trim() || "";
+  const currentSite =
+    user.workingInfo?.currentSite?.trim() ||
+    user.workingInfo?.currentSiteOther?.trim() ||
+    "";
 
   return (
     <main className="profile-stage">
       <ProfileCardView
+        currentSiteHref={
+          currentSite ? `/sites/${encodeURIComponent(currentSite)}` : null
+        }
         displayName={lineProfile.displayName}
         pictureUrl={lineProfile.pictureUrl}
         referrerHref={

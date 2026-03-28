@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   getUserById,
   getUserByLineUserId,
+  listUsersByCurrentSite,
   listUsers,
   listUsersByReferrer
 } from "./users.service";
@@ -52,6 +53,20 @@ usersRouter.get("/users/referrer/:referrer", async (request, response, next) => 
     const params = referrerParamsSchema.parse(request.params);
     const query = listUsersQuerySchema.parse(request.query);
     const payload = await listUsersByReferrer(params.referrer, query.limit);
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/site/:site", async (request, response, next) => {
+  try {
+    const params = referrerParamsSchema.parse({
+      referrer: request.params.site
+    });
+    const query = listUsersQuerySchema.parse(request.query);
+    const payload = await listUsersByCurrentSite(params.referrer, query.limit);
 
     response.json(payload);
   } catch (error) {

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
+  UserSiteConnectionsResponse,
   UserProfileUpdateInput,
   UserRecord,
   UsersListResponse
@@ -116,6 +117,75 @@ export async function listUsersByReferrer(
 
   return {
     referrer: normalizedReferrer,
+    items: items.map((user) => ({
+      id: user._id.toString(),
+      fullname: user.personal_info?.fullname ?? null,
+      nickname: user.personal_info?.nickname ?? null,
+      title: user.working_info?.title ?? null,
+      joiningYear: user.working_info?.joining_year ?? null
+    })),
+    total,
+    limit: normalizedLimit
+  };
+}
+
+export async function listUsersByCurrentSite(
+  site: string,
+  limit: number
+): Promise<UserSiteConnectionsResponse> {
+  const normalizedSite = site.trim();
+
+  if (!normalizedSite) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "InvalidCurrentSite",
+      message: "Current site must not be empty"
+    });
+  }
+
+  const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const siteRegex = new RegExp(`^${escapeRegex(normalizedSite)}$`, "i");
+  const projection = {
+    _id: 1,
+    "personal_info.fullname": 1,
+    "personal_info.nickname": 1,
+    "working_info.title": 1,
+    "working_info.joining_year": 1
+  } as const;
+
+  const filter = {
+    $or: [
+      {
+        "working_info.current_site": siteRegex
+      },
+      {
+        "working_info.current_site_other": siteRegex
+      }
+    ]
+  };
+
+  const [items, total] = await Promise.all([
+    UserModel.find(filter, projection)
+      .sort({ "personal_info.fullname": 1, _id: 1 })
+      .limit(normalizedLimit)
+      .lean<
+        Array<{
+          _id: mongoose.Types.ObjectId;
+          personal_info?: {
+            fullname?: string | null;
+            nickname?: string | null;
+          };
+          working_info?: {
+            title?: string | null;
+            joining_year?: number | null;
+          };
+        }>
+      >(),
+    UserModel.countDocuments(filter)
+  ]);
+
+  return {
+    site: normalizedSite,
     items: items.map((user) => ({
       id: user._id.toString(),
       fullname: user.personal_info?.fullname ?? null,

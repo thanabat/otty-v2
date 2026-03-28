@@ -9,6 +9,7 @@ type ProfileCardViewProps = {
   displayName: string;
   pictureUrl?: string | null;
   referrerHref?: string | null;
+  currentSiteHref?: string | null;
   footer?: ReactNode;
 };
 
@@ -17,6 +18,7 @@ export function ProfileCardView({
   displayName,
   pictureUrl,
   referrerHref,
+  currentSiteHref,
   footer
 }: ProfileCardViewProps) {
   const currentYear = new Date().getFullYear();
@@ -26,6 +28,10 @@ export function ProfileCardView({
       ? Math.max(currentYear - joiningYear, 0)
       : null;
   const referrer = user.workingInfo?.referrer?.trim() || "";
+  const currentSite =
+    user.workingInfo?.currentSite?.trim() ||
+    user.workingInfo?.currentSiteOther?.trim() ||
+    "";
 
   return (
     <section className="profile-spotlight">
@@ -117,11 +123,18 @@ export function ProfileCardView({
                   </div>
                   <div className="profile-detail-card__item">
                     <span className="profile-detail-card__label">Current Site</span>
-                    <span className="profile-detail-card__value">
-                      {user.workingInfo?.currentSite ||
-                        user.workingInfo?.currentSiteOther ||
-                        "-"}
-                    </span>
+                    {currentSite && currentSiteHref ? (
+                      <Link
+                        className="profile-detail-card__value profile-detail-card__value--link"
+                        href={currentSiteHref}
+                      >
+                        {currentSite}
+                      </Link>
+                    ) : (
+                      <span className="profile-detail-card__value">
+                        {currentSite || "-"}
+                      </span>
+                    )}
                   </div>
                   <div className="profile-detail-card__item">
                     <span className="profile-detail-card__label">Referrer</span>
