@@ -58,7 +58,11 @@ usersRouter.get("/users/referrer/:referrer", async (request, response, next) => 
   try {
     const params = referrerParamsSchema.parse(request.params);
     const query = listUsersQuerySchema.parse(request.query);
-    const payload = await listUsersByReferrer(params.referrer, query.limit);
+    const payload = await listUsersByReferrer(
+      params.referrer,
+      query.limit,
+      query.page
+    );
 
     response.json(payload);
   } catch (error) {
@@ -72,7 +76,11 @@ usersRouter.get("/users/site/:site", async (request, response, next) => {
       referrer: request.params.site
     });
     const query = listUsersQuerySchema.parse(request.query);
-    const payload = await listUsersByCurrentSite(params.referrer, query.limit);
+    const payload = await listUsersByCurrentSite(
+      params.referrer,
+      query.limit,
+      query.page
+    );
 
     response.json(payload);
   } catch (error) {

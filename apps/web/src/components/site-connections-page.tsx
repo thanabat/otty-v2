@@ -8,6 +8,7 @@ import { ensureLiffSession } from "../lib/liff-auth";
 
 type SiteConnectionsPageProps = {
   site: string;
+  currentPage: number;
 };
 
 type SiteConnectionsState = {
@@ -16,7 +17,10 @@ type SiteConnectionsState = {
   data: UserSiteConnectionsResponse | null;
 };
 
-export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
+export function SiteConnectionsPage({
+  site,
+  currentPage
+}: SiteConnectionsPageProps) {
   const [state, setState] = useState<SiteConnectionsState>({
     isLoading: true,
     error: null,
@@ -28,8 +32,10 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
 
     async function bootstrap() {
       try {
-        await ensureLiffSession(`/sites/${encodeURIComponent(site)}`);
-        const data = await fetchUsersBySite(site);
+        await ensureLiffSession(
+          `/sites/${encodeURIComponent(site)}?page=${currentPage}`
+        );
+        const data = await fetchUsersBySite(site, currentPage);
 
         if (!cancelled) {
           setState({
@@ -64,7 +70,7 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [site]);
+  }, [currentPage, site]);
 
   if (state.isLoading) {
     return (
@@ -114,6 +120,9 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
           <p className="lead lead--dark">
             พบ {state.data.total} คนใน current site เดียวกัน
           </p>
+          <p className="lead lead--dark lead--compact">
+            Page {state.data.page} of {state.data.totalPages}
+          </p>
         </section>
 
         <div className="button-row button-row--compact">
@@ -134,13 +143,49 @@ export function SiteConnectionsPage({ site }: SiteConnectionsPageProps) {
             />
           ))}
         </section>
+
+        <div className="pagination-row">
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page <= 1 ? " action-button--disabled-link" : ""
+            }`}
+            href={
+              state.data.page <= 1
+                ? "#"
+                : `/sites/${encodeURIComponent(state.data.site)}?page=${
+                    state.data.page - 1
+                  }`
+            }
+          >
+            Previous
+          </Link>
+          <p className="pagination-row__label">
+            Page {state.data.page} / {state.data.totalPages}
+          </p>
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page >= state.data.totalPages
+                ? " action-button--disabled-link"
+                : ""
+            }`}
+            href={
+              state.data.page >= state.data.totalPages
+                ? "#"
+                : `/sites/${encodeURIComponent(state.data.site)}?page=${
+                    state.data.page + 1
+                  }`
+            }
+          >
+            Next
+          </Link>
+        </div>
       </div>
     </main>
   );
 }
 
-async function fetchUsersBySite(site: string) {
-  const response = await fetch(`/api/users/site/${encodeURIComponent(site)}?limit=100`, {
+async function fetchUsersBySite(site: string, page: number) {
+  const response = await fetch(`/api/users/site/${encodeURIComponent(site)}?limit=5&page=${page}`, {
     method: "GET",
     cache: "no-store"
   });

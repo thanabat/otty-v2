@@ -10,12 +10,17 @@ export async function GET(
   const { referrer } = await context.params;
   const { searchParams } = new URL(request.url);
   const limit = searchParams.get("limit");
+  const page = searchParams.get("page");
   const apiUrl = new URL(
     `${apiBaseUrl}/users/referrer/${encodeURIComponent(referrer)}`
   );
 
   if (limit) {
     apiUrl.searchParams.set("limit", limit);
+  }
+
+  if (page) {
+    apiUrl.searchParams.set("page", page);
   }
 
   try {

@@ -67,7 +67,8 @@ export async function getUserByLineUserId(lineUserId: string) {
 
 export async function listUsersByReferrer(
   referrer: string,
-  limit: number
+  limit: number,
+  page: number
 ): Promise<UserConnectionsResponse> {
   const normalizedReferrer = referrer.trim();
 
@@ -80,6 +81,8 @@ export async function listUsersByReferrer(
   }
 
   const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const normalizedPage = Math.max(page, 1);
+  const skip = (normalizedPage - 1) * normalizedLimit;
   const referrerRegex = new RegExp(`^${escapeRegex(normalizedReferrer)}$`, "i");
   const projection = {
     _id: 1,
@@ -99,6 +102,7 @@ export async function listUsersByReferrer(
       projection
     )
       .sort({ "personal_info.fullname": 1, _id: 1 })
+      .skip(skip)
       .limit(normalizedLimit)
       .lean<
         Array<{
@@ -134,13 +138,16 @@ export async function listUsersByReferrer(
         null
     })),
     total,
-    limit: normalizedLimit
+    limit: normalizedLimit,
+    page: normalizedPage,
+    totalPages: Math.max(Math.ceil(total / normalizedLimit), 1)
   };
 }
 
 export async function listUsersByCurrentSite(
   site: string,
-  limit: number
+  limit: number,
+  page: number
 ): Promise<UserSiteConnectionsResponse> {
   const normalizedSite = site.trim();
 
@@ -153,6 +160,8 @@ export async function listUsersByCurrentSite(
   }
 
   const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const normalizedPage = Math.max(page, 1);
+  const skip = (normalizedPage - 1) * normalizedLimit;
   const siteRegex = new RegExp(`^${escapeRegex(normalizedSite)}$`, "i");
   const projection = {
     _id: 1,
@@ -178,6 +187,7 @@ export async function listUsersByCurrentSite(
   const [items, total] = await Promise.all([
     UserModel.find(filter, projection)
       .sort({ "personal_info.fullname": 1, _id: 1 })
+      .skip(skip)
       .limit(normalizedLimit)
       .lean<
         Array<{
@@ -211,7 +221,9 @@ export async function listUsersByCurrentSite(
         null
     })),
     total,
-    limit: normalizedLimit
+    limit: normalizedLimit,
+    page: normalizedPage,
+    totalPages: Math.max(Math.ceil(total / normalizedLimit), 1)
   };
 }
 

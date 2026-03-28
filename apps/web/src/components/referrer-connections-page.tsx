@@ -8,6 +8,7 @@ import { ensureLiffSession } from "../lib/liff-auth";
 
 type ReferrerConnectionsPageProps = {
   referrer: string;
+  currentPage: number;
 };
 
 type ConnectionsState = {
@@ -17,7 +18,8 @@ type ConnectionsState = {
 };
 
 export function ReferrerConnectionsPage({
-  referrer
+  referrer,
+  currentPage
 }: ReferrerConnectionsPageProps) {
   const [state, setState] = useState<ConnectionsState>({
     isLoading: true,
@@ -30,8 +32,10 @@ export function ReferrerConnectionsPage({
 
     async function bootstrap() {
       try {
-        await ensureLiffSession(`/connections/${encodeURIComponent(referrer)}`);
-        const data = await fetchUsersByReferrer(referrer);
+        await ensureLiffSession(
+          `/connections/${encodeURIComponent(referrer)}?page=${currentPage}`
+        );
+        const data = await fetchUsersByReferrer(referrer, currentPage);
 
         if (!cancelled) {
           setState({
@@ -66,7 +70,7 @@ export function ReferrerConnectionsPage({
     return () => {
       cancelled = true;
     };
-  }, [referrer]);
+  }, [currentPage, referrer]);
 
   if (state.isLoading) {
     return (
@@ -116,6 +120,9 @@ export function ReferrerConnectionsPage({
           <p className="lead lead--dark">
             พบ {state.data.total} คนที่มี referrer เดียวกัน
           </p>
+          <p className="lead lead--dark lead--compact">
+            Page {state.data.page} of {state.data.totalPages}
+          </p>
         </section>
 
         <div className="button-row button-row--compact">
@@ -138,14 +145,50 @@ export function ReferrerConnectionsPage({
             />
           ))}
         </section>
+
+        <div className="pagination-row">
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page <= 1 ? " action-button--disabled-link" : ""
+            }`}
+            href={
+              state.data.page <= 1
+                ? "#"
+                : `/connections/${encodeURIComponent(state.data.referrer)}?page=${
+                    state.data.page - 1
+                  }`
+            }
+          >
+            Previous
+          </Link>
+          <p className="pagination-row__label">
+            Page {state.data.page} / {state.data.totalPages}
+          </p>
+          <Link
+            className={`action-button action-button--secondary-dark${
+              state.data.page >= state.data.totalPages
+                ? " action-button--disabled-link"
+                : ""
+            }`}
+            href={
+              state.data.page >= state.data.totalPages
+                ? "#"
+                : `/connections/${encodeURIComponent(state.data.referrer)}?page=${
+                    state.data.page + 1
+                  }`
+            }
+          >
+            Next
+          </Link>
+        </div>
       </div>
     </main>
   );
 }
 
-async function fetchUsersByReferrer(referrer: string) {
+async function fetchUsersByReferrer(referrer: string, page: number) {
   const response = await fetch(
-    `/api/users/referrer/${encodeURIComponent(referrer)}?limit=100`,
+    `/api/users/referrer/${encodeURIComponent(referrer)}?limit=5&page=${page}`,
     {
       method: "GET",
       cache: "no-store"

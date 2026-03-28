@@ -60,6 +60,8 @@ export interface UserConnectionsResponse {
   items: UserConnectionItem[];
   total: number;
   limit: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface UserSiteConnectionsResponse {
@@ -67,6 +69,8 @@ export interface UserSiteConnectionsResponse {
   items: UserConnectionItem[];
   total: number;
   limit: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface UserYearConnectionsResponse {
