@@ -112,6 +112,7 @@ export function ReferrerConnectionsPage({
   }
 
   const data = state.data;
+  const shouldShowPagination = data.totalPages > 1;
 
   return (
     <main className="profile-stage profile-stage--top">
@@ -122,9 +123,11 @@ export function ReferrerConnectionsPage({
           <p className="lead lead--dark">
             พบ {data.total} คนที่มี referrer เดียวกัน
           </p>
-          <p className="lead lead--dark lead--compact">
-            Page {data.page} of {data.totalPages}
-          </p>
+          {shouldShowPagination ? (
+            <p className="lead lead--dark lead--compact">
+              Page {data.page} of {data.totalPages}
+            </p>
+          ) : null}
         </section>
 
         <div className="button-row button-row--compact">
@@ -148,41 +151,43 @@ export function ReferrerConnectionsPage({
           ))}
         </section>
 
-        <div className="pagination-row">
-          <Link
-            className={`action-button action-button--secondary-dark${
-              data.page <= 1 ? " action-button--disabled-link" : ""
-            }`}
-            href={
-              data.page <= 1
-                ? "#"
-                : `/connections/${encodeURIComponent(data.referrer)}?page=${
-                    data.page - 1
-                  }`
-            }
-          >
-            Previous
-          </Link>
-          <p className="pagination-row__label">
-            Page {data.page} / {data.totalPages}
-          </p>
-          <Link
-            className={`action-button action-button--secondary-dark${
-              data.page >= data.totalPages
-                ? " action-button--disabled-link"
-                : ""
-            }`}
-            href={
-              data.page >= data.totalPages
-                ? "#"
-                : `/connections/${encodeURIComponent(data.referrer)}?page=${
-                    data.page + 1
-                  }`
-            }
-          >
-            Next
-          </Link>
-        </div>
+        {shouldShowPagination ? (
+          <div className="pagination-row">
+            <Link
+              className={`action-button action-button--secondary-dark${
+                data.page <= 1 ? " action-button--disabled-link" : ""
+              }`}
+              href={
+                data.page <= 1
+                  ? "#"
+                  : `/connections/${encodeURIComponent(data.referrer)}?page=${
+                      data.page - 1
+                    }`
+              }
+            >
+              Previous
+            </Link>
+            <p className="pagination-row__label">
+              Page {data.page} / {data.totalPages}
+            </p>
+            <Link
+              className={`action-button action-button--secondary-dark${
+                data.page >= data.totalPages
+                  ? " action-button--disabled-link"
+                  : ""
+              }`}
+              href={
+                data.page >= data.totalPages
+                  ? "#"
+                  : `/connections/${encodeURIComponent(data.referrer)}?page=${
+                      data.page + 1
+                    }`
+              }
+            >
+              Next
+            </Link>
+          </div>
+        ) : null}
       </div>
     </main>
   );
