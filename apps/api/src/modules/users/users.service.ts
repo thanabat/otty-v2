@@ -387,11 +387,6 @@ export async function updateUserByLineUserId(
     updates["working_info.title"] = normalizeString(input.title);
   }
 
-  if ("currentSite" in input) {
-    updates["working_info.current_site"] = normalizeCurrentSite(input.currentSite);
-    updates["working_info.current_site_other"] = null;
-  }
-
   if ("joiningYear" in input) {
     updates["working_info.joining_year"] =
       typeof input.joiningYear === "number" ? input.joiningYear : null;

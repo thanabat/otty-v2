@@ -113,5 +113,4 @@ export interface UserProfileUpdateInput {
   bio?: string | null;
   title?: string | null;
   joiningYear?: number | null;
-  currentSite?: string | null;
 }
