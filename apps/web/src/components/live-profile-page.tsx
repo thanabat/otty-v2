@@ -72,7 +72,7 @@ export function LiveProfilePage() {
 
         if (!liff.isLoggedIn()) {
           liff.login({
-            redirectUri: window.location.href
+            redirectUri: `${window.location.origin}/profile`
           });
           return;
         }
