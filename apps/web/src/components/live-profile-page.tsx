@@ -309,10 +309,13 @@ export function LiveProfilePage() {
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      phone: event.target.value
+                      phone: event.target.value.replace(/\D/g, "").slice(0, 10)
                     }))
                   }
-                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
+                  pattern="[0-9]*"
+                  type="tel"
                   value={form.phone}
                 />
               </label>
@@ -349,13 +352,15 @@ export function LiveProfilePage() {
                 <span>Joining Year</span>
                 <input
                   inputMode="numeric"
+                  maxLength={4}
+                  pattern="[0-9]*"
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      joiningYear: event.target.value
+                      joiningYear: event.target.value.replace(/\D/g, "").slice(0, 4)
                     }))
                   }
-                  type="text"
+                  type="tel"
                   value={form.joiningYear}
                 />
               </label>
