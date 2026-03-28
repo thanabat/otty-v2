@@ -130,6 +130,12 @@ To normalize existing `working_info.current_site` and `working_info.current_site
 npm run db:normalize:current-site
 ```
 
+To create a first current `working_experiences` entry from existing `working_info.current_site`, `working_info.current_site_other`, `working_info.project`, and `working_info.joining_year` for users that do not have any work history yet:
+
+```bash
+npm run db:backfill:working-experiences
+```
+
 ## Deployment Expectation
 
 Deploy the two apps as separate services:

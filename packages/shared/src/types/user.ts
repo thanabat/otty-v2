@@ -26,6 +26,14 @@ export interface UserWorkingExperience {
   isCurrent: boolean;
 }
 
+export interface UserWorkingExperienceInput {
+  site: string;
+  project: string;
+  startYear: number;
+  endYear?: number | null;
+  isCurrent: boolean;
+}
+
 export interface UserFieldItem {
   key: string;
   label: string;

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
   UserCurrentSiteOptionsResponse,
+  UserWorkingExperienceInput,
   UserSiteConnectionsResponse,
   UserYearConnectionsResponse,
   UserProfileUpdateInput,
@@ -420,6 +421,140 @@ export async function updateUserByLineUserId(
   return serializeUser(user as UserDocument);
 }
 
+export async function createWorkingExperienceByLineUserId(
+  lineUserId: string,
+  input: UserWorkingExperienceInput
+) {
+  const user = await UserModel.findOne({
+    line_user_id: lineUserId
+  });
+
+  if (!user) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  const nextExperience = {
+    _id: new mongoose.Types.ObjectId(),
+    ...normalizeWorkingExperienceInput(input)
+  };
+
+  let experiences = readWorkingExperiences(user).map((experience) => ({
+    ...experience
+  }));
+
+  if (nextExperience.is_current) {
+    experiences = experiences.map((experience) => ({
+      ...experience,
+      is_current: false
+    }));
+  }
+
+  experiences.push(nextExperience);
+  applyWorkingExperiences(user, experiences);
+
+  return saveAndSerializeUser(user);
+}
+
+export async function updateWorkingExperienceByLineUserId(
+  lineUserId: string,
+  experienceId: string,
+  input: UserWorkingExperienceInput
+) {
+  assertWorkingExperienceId(experienceId);
+
+  const user = await UserModel.findOne({
+    line_user_id: lineUserId
+  });
+
+  if (!user) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  const normalizedInput = normalizeWorkingExperienceInput(input);
+  const experiences = readWorkingExperiences(user).map((experience) => ({
+    ...experience
+  }));
+  const existingIndex = experiences.findIndex(
+    (experience) => experience._id.toString() === experienceId
+  );
+
+  if (existingIndex < 0) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "WorkingExperienceNotFound",
+      message: "Working experience was not found"
+    });
+  }
+
+  if (normalizedInput.is_current) {
+    for (const experience of experiences) {
+      experience.is_current = false;
+    }
+  }
+
+  const existingExperience = experiences[existingIndex];
+
+  if (!existingExperience) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "WorkingExperienceNotFound",
+      message: "Working experience was not found"
+    });
+  }
+
+  experiences[existingIndex] = {
+    _id: existingExperience._id,
+    ...normalizedInput
+  };
+
+  applyWorkingExperiences(user, experiences);
+
+  return saveAndSerializeUser(user);
+}
+
+export async function deleteWorkingExperienceByLineUserId(
+  lineUserId: string,
+  experienceId: string
+) {
+  assertWorkingExperienceId(experienceId);
+
+  const user = await UserModel.findOne({
+    line_user_id: lineUserId
+  });
+
+  if (!user) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  const experiences = readWorkingExperiences(user).filter(
+    (experience) => experience._id.toString() !== experienceId
+  );
+
+  if (experiences.length === readWorkingExperiences(user).length) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "WorkingExperienceNotFound",
+      message: "Working experience was not found"
+    });
+  }
+
+  applyWorkingExperiences(user, experiences);
+
+  return saveAndSerializeUser(user);
+}
+
 function serializeUser(user: UserDocument): UserRecord {
   const sections = buildUserSections(user);
 
@@ -626,6 +761,190 @@ function normalizeCurrentSite(value: string | null | undefined) {
   }
 
   return normalized.toUpperCase();
+}
+
+function normalizeWorkingExperienceInput(input: UserWorkingExperienceInput) {
+  const site = normalizeCurrentSite(input.site);
+  const project = normalizeString(input.project);
+  const startYear = normalizeExperienceYear(input.startYear, "Start year");
+  const isCurrent = Boolean(input.isCurrent);
+  const endYear = isCurrent
+    ? null
+    : input.endYear == null
+      ? null
+      : normalizeExperienceYear(input.endYear, "End year");
+
+  if (!site) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "WorkingExperienceSiteRequired",
+      message: "Working experience site is required"
+    });
+  }
+
+  if (!project) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "WorkingExperienceProjectRequired",
+      message: "Working experience project is required"
+    });
+  }
+
+  if (endYear != null && endYear < startYear) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "WorkingExperienceYearRangeInvalid",
+      message: "End year must be greater than or equal to start year"
+    });
+  }
+
+  return {
+    site,
+    project,
+    start_year: startYear,
+    end_year: endYear,
+    is_current: isCurrent
+  };
+}
+
+function normalizeExperienceYear(value: number, label: string) {
+  if (!Number.isInteger(value) || value < 1900 || value > 3000) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "WorkingExperienceYearInvalid",
+      message: `${label} must be a valid year`
+    });
+  }
+
+  return value;
+}
+
+function assertWorkingExperienceId(experienceId: string) {
+  if (!mongoose.isValidObjectId(experienceId)) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "InvalidWorkingExperienceId",
+      message: "Working experience id must be a valid MongoDB ObjectId"
+    });
+  }
+}
+
+function readWorkingExperiences(user: InstanceType<typeof UserModel>) {
+  const rawValue = user.get("working_experiences");
+
+  if (!Array.isArray(rawValue)) {
+    return [] as Array<{
+      _id: mongoose.Types.ObjectId;
+      site: string | null;
+      project: string | null;
+      start_year: number | null;
+      end_year: number | null;
+      is_current: boolean;
+    }>;
+  }
+
+  return rawValue
+    .map((experience) => {
+      if (!experience || typeof experience !== "object") {
+        return null;
+      }
+
+      const record = experience as Record<string, unknown>;
+      const objectId =
+        record._id instanceof mongoose.Types.ObjectId
+          ? record._id
+          : typeof record._id === "string" && mongoose.isValidObjectId(record._id)
+            ? new mongoose.Types.ObjectId(record._id)
+            : null;
+
+      if (!objectId) {
+        return null;
+      }
+
+      return {
+        _id: objectId,
+        site: normalizeCurrentSite(
+          typeof record.site === "string" ? record.site : null
+        ),
+        project: normalizeString(
+          typeof record.project === "string" ? record.project : null
+        ),
+        start_year:
+          typeof record.start_year === "number" && Number.isInteger(record.start_year)
+            ? record.start_year
+            : null,
+        end_year:
+          typeof record.end_year === "number" && Number.isInteger(record.end_year)
+            ? record.end_year
+            : null,
+        is_current: Boolean(record.is_current)
+      };
+    })
+    .filter(
+      (
+        experience
+      ): experience is {
+        _id: mongoose.Types.ObjectId;
+        site: string | null;
+        project: string | null;
+        start_year: number | null;
+        end_year: number | null;
+        is_current: boolean;
+      } => Boolean(experience)
+    );
+}
+
+function applyWorkingExperiences(
+  user: InstanceType<typeof UserModel>,
+  experiences: Array<{
+    _id: mongoose.Types.ObjectId;
+    site: string | null;
+    project: string | null;
+    start_year: number | null;
+    end_year: number | null;
+    is_current: boolean;
+  }>
+) {
+  user.set("working_experiences", experiences);
+  syncWorkingInfoFromExperiences(user, experiences);
+  user.set("updated_at", new Date());
+  user.markModified("working_experiences");
+  user.markModified("working_info");
+}
+
+function syncWorkingInfoFromExperiences(
+  user: InstanceType<typeof UserModel>,
+  experiences: Array<{
+    _id: mongoose.Types.ObjectId;
+    site: string | null;
+    project: string | null;
+    start_year: number | null;
+    end_year: number | null;
+    is_current: boolean;
+  }>
+) {
+  const currentExperience =
+    experiences.find((experience) => experience.is_current) ?? null;
+
+  user.set("working_info.current_site", currentExperience?.site ?? null);
+  user.set("working_info.current_site_other", null);
+  user.set("working_info.project", currentExperience?.project ?? null);
+}
+
+async function saveAndSerializeUser(user: InstanceType<typeof UserModel>) {
+  await user.save();
+
+  const persistedUser = await UserModel.findById(user._id).lean<UserDocument | null>();
+
+  if (!persistedUser) {
+    throw new HttpError({
+      statusCode: 404,
+      code: "UserNotFound",
+      message: "User was not found"
+    });
+  }
+
+  return serializeUser(persistedUser);
 }
 
 function escapeRegex(value: string) {

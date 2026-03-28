@@ -286,6 +286,11 @@ li + li {
   margin-bottom: 0;
 }
 
+.button-row--split {
+  justify-content: space-between;
+  align-items: center;
+}
+
 .button-row--stack {
   width: 100%;
   margin-bottom: 0;
@@ -348,6 +353,13 @@ li + li {
   background: transparent;
   color: var(--muted);
   border: 1px solid rgba(101, 88, 75, 0.2);
+  box-shadow: none;
+}
+
+.action-button--ghost-dark {
+  background: transparent;
+  color: rgba(247, 244, 239, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: none;
 }
 
@@ -776,6 +788,12 @@ li + li {
   gap: 4px;
 }
 
+.experience-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .experience-card__label {
   color: rgba(247, 244, 239, 0.5);
   font-size: 0.8rem;
@@ -922,6 +940,12 @@ li + li {
   gap: 14px;
 }
 
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .editor-field {
   display: grid;
   gap: 8px;
@@ -942,6 +966,27 @@ li + li {
   color: #ffffff;
   padding: 14px 16px;
   font: inherit;
+}
+
+.editor-field input:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.editor-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  color: rgba(247, 244, 239, 0.74);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.editor-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
 }
 
 .combobox-field {
@@ -1172,6 +1217,10 @@ pre {
   }
 
   .experience-card__meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-grid {
     grid-template-columns: 1fr;
   }
 

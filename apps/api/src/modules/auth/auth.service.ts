@@ -1,5 +1,8 @@
 import { z } from "zod";
 import type {
+  LiffWorkingExperienceCreateRequest,
+  LiffWorkingExperienceDeleteRequest,
+  LiffWorkingExperienceUpdateRequest,
   LiffLoginResponse,
   UserProfileUpdateInput,
   VerifiedLineProfileResponse
@@ -7,7 +10,10 @@ import type {
 import { env } from "../../config/env";
 import { HttpError } from "../../lib/http-error";
 import {
+  createWorkingExperienceByLineUserId,
+  deleteWorkingExperienceByLineUserId,
   syncLinePictureByLineUserId,
+  updateWorkingExperienceByLineUserId,
   updateUserByLineUserId
 } from "../users/users.service";
 
@@ -123,6 +129,38 @@ export async function updateProfileWithLiff(
     token: verified.token,
     user
   };
+}
+
+export async function createWorkingExperienceWithLiff(
+  accessToken: string,
+  body: LiffWorkingExperienceCreateRequest["experience"]
+) {
+  const verified = await getVerifiedLineProfile(accessToken);
+
+  return createWorkingExperienceByLineUserId(verified.profile.userId, body);
+}
+
+export async function updateWorkingExperienceWithLiff(
+  accessToken: string,
+  experienceId: LiffWorkingExperienceUpdateRequest["experienceId"],
+  body: LiffWorkingExperienceUpdateRequest["experience"]
+) {
+  const verified = await getVerifiedLineProfile(accessToken);
+
+  return updateWorkingExperienceByLineUserId(
+    verified.profile.userId,
+    experienceId,
+    body
+  );
+}
+
+export async function deleteWorkingExperienceWithLiff(
+  accessToken: string,
+  experienceId: LiffWorkingExperienceDeleteRequest["experienceId"]
+) {
+  const verified = await getVerifiedLineProfile(accessToken);
+
+  return deleteWorkingExperienceByLineUserId(verified.profile.userId, experienceId);
 }
 
 async function fetchLineJson<T>(

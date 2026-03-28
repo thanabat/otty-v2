@@ -1,5 +1,8 @@
-import type { UserRecord } from "./user";
-import type { UserProfileUpdateInput } from "./user";
+import type {
+  UserProfileUpdateInput,
+  UserRecord,
+  UserWorkingExperienceInput
+} from "./user";
 
 export interface LineProfileRequest {
   accessToken: string;
@@ -33,4 +36,17 @@ export interface LiffLoginResponse {
 
 export interface LiffProfileUpdateRequest extends LineProfileRequest {
   profile: UserProfileUpdateInput;
+}
+
+export interface LiffWorkingExperienceCreateRequest extends LineProfileRequest {
+  experience: UserWorkingExperienceInput;
+}
+
+export interface LiffWorkingExperienceUpdateRequest extends LineProfileRequest {
+  experienceId: string;
+  experience: UserWorkingExperienceInput;
+}
+
+export interface LiffWorkingExperienceDeleteRequest extends LineProfileRequest {
+  experienceId: string;
 }
