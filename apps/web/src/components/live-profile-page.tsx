@@ -206,6 +206,7 @@ export function LiveProfilePage() {
     user.workingInfo?.currentSite?.trim() ||
     user.workingInfo?.currentSiteOther?.trim() ||
     "";
+  const joiningYear = user.workingInfo?.joiningYear ?? null;
 
   return (
     <main className="profile-stage">
@@ -214,6 +215,7 @@ export function LiveProfilePage() {
           currentSite ? `/sites/${encodeURIComponent(currentSite)}` : null
         }
         displayName={lineProfile.displayName}
+        joiningYearHref={joiningYear ? `/years/${joiningYear}` : null}
         pictureUrl={lineProfile.pictureUrl}
         referrerHref={
           referrer ? `/connections/${encodeURIComponent(referrer)}` : null

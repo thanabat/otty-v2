@@ -10,6 +10,7 @@ type ProfileCardViewProps = {
   pictureUrl?: string | null;
   referrerHref?: string | null;
   currentSiteHref?: string | null;
+  joiningYearHref?: string | null;
   footer?: ReactNode;
 };
 
@@ -19,6 +20,7 @@ export function ProfileCardView({
   pictureUrl,
   referrerHref,
   currentSiteHref,
+  joiningYearHref,
   footer
 }: ProfileCardViewProps) {
   const currentYear = new Date().getFullYear();
@@ -117,9 +119,18 @@ export function ProfileCardView({
                   </div>
                   <div className="profile-detail-card__item">
                     <span className="profile-detail-card__label">Joining Year</span>
-                    <span className="profile-detail-card__value">
-                      {joiningYear ?? "-"}
-                    </span>
+                    {joiningYear && joiningYearHref ? (
+                      <Link
+                        className="profile-detail-card__value profile-detail-card__value--link"
+                        href={joiningYearHref}
+                      >
+                        {joiningYear}
+                      </Link>
+                    ) : (
+                      <span className="profile-detail-card__value">
+                        {joiningYear ?? "-"}
+                      </span>
+                    )}
                   </div>
                   <div className="profile-detail-card__item">
                     <span className="profile-detail-card__label">Current Site</span>

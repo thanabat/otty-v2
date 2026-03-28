@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type {
   UserConnectionsResponse,
   UserSiteConnectionsResponse,
+  UserYearConnectionsResponse,
   UserProfileUpdateInput,
   UserRecord,
   UsersListResponse
@@ -186,6 +187,68 @@ export async function listUsersByCurrentSite(
 
   return {
     site: normalizedSite,
+    items: items.map((user) => ({
+      id: user._id.toString(),
+      fullname: user.personal_info?.fullname ?? null,
+      nickname: user.personal_info?.nickname ?? null,
+      title: user.working_info?.title ?? null,
+      joiningYear: user.working_info?.joining_year ?? null
+    })),
+    total,
+    limit: normalizedLimit
+  };
+}
+
+export async function listUsersByJoiningYear(
+  joiningYear: number,
+  limit: number
+): Promise<UserYearConnectionsResponse> {
+  if (!Number.isInteger(joiningYear) || joiningYear < 1900 || joiningYear > 3000) {
+    throw new HttpError({
+      statusCode: 400,
+      code: "InvalidJoiningYear",
+      message: "Joining year must be a valid year"
+    });
+  }
+
+  const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const projection = {
+    _id: 1,
+    "personal_info.fullname": 1,
+    "personal_info.nickname": 1,
+    "working_info.title": 1,
+    "working_info.joining_year": 1
+  } as const;
+
+  const [items, total] = await Promise.all([
+    UserModel.find(
+      {
+        "working_info.joining_year": joiningYear
+      },
+      projection
+    )
+      .sort({ "personal_info.fullname": 1, _id: 1 })
+      .limit(normalizedLimit)
+      .lean<
+        Array<{
+          _id: mongoose.Types.ObjectId;
+          personal_info?: {
+            fullname?: string | null;
+            nickname?: string | null;
+          };
+          working_info?: {
+            title?: string | null;
+            joining_year?: number | null;
+          };
+        }>
+      >(),
+    UserModel.countDocuments({
+      "working_info.joining_year": joiningYear
+    })
+  ]);
+
+  return {
+    joiningYear,
     items: items.map((user) => ({
       id: user._id.toString(),
       fullname: user.personal_info?.fullname ?? null,

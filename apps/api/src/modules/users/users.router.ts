@@ -4,6 +4,7 @@ import {
   getUserById,
   getUserByLineUserId,
   listUsersByCurrentSite,
+  listUsersByJoiningYear,
   listUsers,
   listUsersByReferrer
 } from "./users.service";
@@ -22,6 +23,10 @@ const userIdParamsSchema = z.object({
 
 const referrerParamsSchema = z.object({
   referrer: z.string().trim().min(1)
+});
+
+const joiningYearParamsSchema = z.object({
+  year: z.coerce.number().int().min(1900).max(3000)
 });
 
 export const usersRouter = Router();
@@ -67,6 +72,18 @@ usersRouter.get("/users/site/:site", async (request, response, next) => {
     });
     const query = listUsersQuerySchema.parse(request.query);
     const payload = await listUsersByCurrentSite(params.referrer, query.limit);
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/joining-year/:year", async (request, response, next) => {
+  try {
+    const params = joiningYearParamsSchema.parse(request.params);
+    const query = listUsersQuerySchema.parse(request.query);
+    const payload = await listUsersByJoiningYear(params.year, query.limit);
 
     response.json(payload);
   } catch (error) {

@@ -10,6 +10,7 @@ type UserProfilePageProps = {
   userId: string;
   referrer?: string;
   site?: string;
+  year?: string;
 };
 
 type UserProfileState = {
@@ -18,7 +19,12 @@ type UserProfileState = {
   user: UserRecord | null;
 };
 
-export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps) {
+export function UserProfilePage({
+  userId,
+  referrer,
+  site,
+  year
+}: UserProfilePageProps) {
   const [state, setState] = useState<UserProfileState>({
     isLoading: true,
     error: null,
@@ -37,6 +43,10 @@ export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps
 
       if (site) {
         query.set("site", site);
+      }
+
+      if (year) {
+        query.set("year", year);
       }
 
       const redirectPath = query.size
@@ -80,7 +90,7 @@ export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps
     return () => {
       cancelled = true;
     };
-  }, [referrer, site, userId]);
+  }, [referrer, site, userId, year]);
 
   if (state.isLoading) {
     return (
@@ -107,7 +117,9 @@ export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps
           <Link
             className="action-button action-button--secondary"
             href={
-              site
+              year
+                ? `/years/${encodeURIComponent(year)}`
+                : site
                 ? `/sites/${encodeURIComponent(site)}`
                 : referrer
                   ? `/connections/${encodeURIComponent(referrer)}`
@@ -126,7 +138,9 @@ export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps
       <Link
         className="action-button action-button--secondary phone-profile-card__action"
         href={
-          site
+          year
+            ? `/years/${encodeURIComponent(year)}`
+            : site
             ? `/sites/${encodeURIComponent(site)}`
             : referrer
               ? `/connections/${encodeURIComponent(referrer)}`
@@ -153,6 +167,11 @@ export function UserProfilePage({ userId, referrer, site }: UserProfilePageProps
         }
         displayName={state.user.personalInfo?.fullname || "Employee"}
         footer={footer}
+        joiningYearHref={
+          state.user.workingInfo?.joiningYear
+            ? `/years/${state.user.workingInfo.joiningYear}`
+            : null
+        }
         referrerHref={
           state.user.workingInfo?.referrer?.trim()
             ? `/connections/${encodeURIComponent(state.user.workingInfo.referrer.trim())}`
