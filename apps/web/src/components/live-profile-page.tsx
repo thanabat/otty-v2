@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { LiffLoginResponse, UserProfileUpdateInput } from "@otty/shared";
-import { webEnv } from "../lib/env";
+import { ProfileCardView } from "./profile-card-view";
+import { ensureLiffSession, logoutLiff } from "../lib/liff-auth";
 
 type LiveProfileState = {
   isInitializing: boolean;
@@ -52,44 +53,15 @@ export function LiveProfilePage() {
     let cancelled = false;
 
     async function bootstrap() {
-      if (!webEnv.liffId) {
-        if (!cancelled) {
-          setState({
-            ...initialState,
-            isInitializing: false,
-            error: "NEXT_PUBLIC_LIFF_ID is missing"
-          });
-        }
-        return;
-      }
-
       try {
-        const { default: liff } = await import("@line/liff");
-
-        await liff.init({
-          liffId: webEnv.liffId
-        });
-
-        if (!liff.isLoggedIn()) {
-          liff.login({
-            redirectUri: `${window.location.origin}/profile`
-          });
-          return;
-        }
-
-        const accessToken = liff.getAccessToken();
-
-        if (!accessToken) {
-          throw new Error("LIFF did not return an access token");
-        }
-
+        const { accessToken, isInClient } = await ensureLiffSession("/profile");
         const session = await fetchLiffLogin(accessToken);
 
         if (!cancelled) {
           setState({
             isInitializing: false,
             isLoggedIn: true,
-            isInClient: liff.isInClient(),
+            isInClient,
             error: null,
             accessToken,
             session
@@ -97,6 +69,13 @@ export function LiveProfilePage() {
           setForm(createEditFormState(session));
         }
       } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "LIFF login redirect started"
+        ) {
+          return;
+        }
+
         if (!cancelled) {
           setState({
             isInitializing: false,
@@ -138,10 +117,7 @@ export function LiveProfilePage() {
   }, [isEditing]);
 
   async function handleLogout() {
-    const { default: liff } = await import("@line/liff");
-
-    liff.logout();
-    window.location.reload();
+    await logoutLiff();
   }
 
   async function handleSaveProfile() {
@@ -225,155 +201,40 @@ export function LiveProfilePage() {
   }
 
   const { user, lineProfile } = state.session;
-  const currentYear = new Date().getFullYear();
-  const joiningYear = user.workingInfo?.joiningYear ?? null;
-  const yearsWorked =
-    typeof joiningYear === "number" && joiningYear > 0
-      ? Math.max(currentYear - joiningYear, 0)
-      : null;
+  const referrer = user.workingInfo?.referrer?.trim() || "";
 
   return (
     <main className="profile-stage">
-      <section className="profile-spotlight">
-        <div className="profile-spotlight__glow" />
-        <article className="phone-profile-card">
-          <div className="phone-profile-card__media">
-            {lineProfile.pictureUrl ? (
-              <img
-                alt={lineProfile.displayName}
-                className="phone-profile-card__image"
-                height={420}
-                src={lineProfile.pictureUrl}
-                width={420}
-              />
-            ) : (
-              <div className="phone-profile-card__image phone-profile-card__image--fallback">
-                {lineProfile.displayName.slice(0, 1)}
-              </div>
-            )}
+      <ProfileCardView
+        displayName={lineProfile.displayName}
+        pictureUrl={lineProfile.pictureUrl}
+        referrerHref={
+          referrer ? `/connections/${encodeURIComponent(referrer)}` : null
+        }
+        user={user}
+        footer={
+          <div className="button-row button-row--stack">
+            <button
+              className="action-button action-button--secondary phone-profile-card__action"
+              onClick={() => {
+                setForm(createEditFormState(state.session!));
+                setSaveError(null);
+                setIsEditing(true);
+              }}
+              type="button"
+            >
+              Edit Profile
+            </button>
+            <button
+              className="action-button phone-profile-card__logout"
+              onClick={() => void handleLogout()}
+              type="button"
+            >
+              Logout
+            </button>
           </div>
-
-          <div className="phone-profile-card__content">
-            <div className="phone-profile-card__title-row">
-              <div>
-                <p className="phone-profile-card__name">
-                  {user.personalInfo?.fullname || lineProfile.displayName}
-                </p>
-                <p className="phone-profile-card__role">
-                  {user.workingInfo?.title || "No title"}
-                </p>
-              </div>
-              <img
-                alt="Verified profile"
-                className="verify-badge"
-                height={44}
-                src="/verify.svg"
-                width={44}
-              />
-            </div>
-
-            <div className="phone-profile-card__footer">
-              <div className="phone-profile-card__details-grid">
-                <section className="profile-detail-card">
-                  <p className="profile-detail-card__eyebrow">Contact Info</p>
-                  <div className="profile-detail-card__list">
-                    <div className="profile-detail-card__item profile-detail-card__item--icon">
-                      <img
-                        alt="Email"
-                        className="profile-detail-card__icon"
-                        height={18}
-                        src="/email.svg"
-                        width={18}
-                      />
-                      <span className="profile-detail-card__value">
-                        {user.personalInfo?.email || "-"}
-                      </span>
-                    </div>
-                    <div className="profile-detail-card__item profile-detail-card__item--icon">
-                      <img
-                        alt="Phone"
-                        className="profile-detail-card__icon"
-                        height={18}
-                        src="/phone.svg"
-                        width={18}
-                      />
-                      <span className="profile-detail-card__value">
-                        {user.personalInfo?.phone || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="profile-detail-card">
-                  <p className="profile-detail-card__eyebrow">Working Info</p>
-                  <div className="profile-detail-card__list profile-detail-card__list--two-column">
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Experience</span>
-                      <span className="profile-detail-card__value">
-                        {yearsWorked !== null
-                          ? `${yearsWorked} year${yearsWorked === 1 ? "" : "s"}`
-                          : "-"}
-                      </span>
-                    </div>
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Joining Year</span>
-                      <span className="profile-detail-card__value">
-                        {joiningYear ?? "-"}
-                      </span>
-                    </div>
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Current Site</span>
-                      <span className="profile-detail-card__value">
-                        {user.workingInfo?.currentSite ||
-                          user.workingInfo?.currentSiteOther ||
-                          "-"}
-                      </span>
-                    </div>
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__label">Referrer</span>
-                      <span className="profile-detail-card__value">
-                        {user.workingInfo?.referrer || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="profile-detail-card profile-detail-card--full">
-                  <p className="profile-detail-card__eyebrow">Bio</p>
-                  <div className="profile-detail-card__list">
-                    <div className="profile-detail-card__item">
-                      <span className="profile-detail-card__value profile-detail-card__value--body">
-                        {user.personalInfo?.bio || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </section>
-              </div>
-
-              <div className="button-row button-row--stack">
-                <button
-                  className="action-button action-button--secondary phone-profile-card__action"
-                  onClick={() => {
-                    setForm(createEditFormState(state.session!));
-                    setSaveError(null);
-                    setIsEditing(true);
-                  }}
-                  type="button"
-                >
-                  Edit Profile
-                </button>
-                <button
-                  className="action-button phone-profile-card__logout"
-                  onClick={() => void handleLogout()}
-                  type="button"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </article>
-      </section>
+        }
+      />
 
       {isEditing ? (
         <section className="profile-editor-overlay">

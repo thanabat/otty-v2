@@ -46,6 +46,21 @@ export interface UsersListResponse {
   limit: number;
 }
 
+export interface UserConnectionItem {
+  id: string;
+  fullname?: string | null;
+  nickname?: string | null;
+  title?: string | null;
+  joiningYear?: number | null;
+}
+
+export interface UserConnectionsResponse {
+  referrer: string;
+  items: UserConnectionItem[];
+  total: number;
+  limit: number;
+}
+
 export interface UserProfileUpdateInput {
   fullname?: string | null;
   nickname?: string | null;

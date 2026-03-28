@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
-import { getUserById, getUserByLineUserId, listUsers } from "./users.service";
+import {
+  getUserById,
+  getUserByLineUserId,
+  listUsers,
+  listUsersByReferrer
+} from "./users.service";
 
 const listUsersQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20)
@@ -12,6 +17,10 @@ const lineUserParamsSchema = z.object({
 
 const userIdParamsSchema = z.object({
   userId: z.string().min(1)
+});
+
+const referrerParamsSchema = z.object({
+  referrer: z.string().trim().min(1)
 });
 
 export const usersRouter = Router();
@@ -31,6 +40,18 @@ usersRouter.get("/users/line/:lineUserId", async (request, response, next) => {
   try {
     const params = lineUserParamsSchema.parse(request.params);
     const payload = await getUserByLineUserId(params.lineUserId);
+
+    response.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.get("/users/referrer/:referrer", async (request, response, next) => {
+  try {
+    const params = referrerParamsSchema.parse(request.params);
+    const query = listUsersQuerySchema.parse(request.query);
+    const payload = await listUsersByReferrer(params.referrer, query.limit);
 
     response.json(payload);
   } catch (error) {
