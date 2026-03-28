@@ -163,7 +163,7 @@ export function UserProfilePage({
   const footer = (
     <div className="button-row button-row--stack">
       <Link
-        className="action-button action-button--secondary phone-profile-card__action"
+        className="action-button action-button--secondary phone-profile-card__action phone-profile-card__action--centered"
         href={backHref}
       >
         Back

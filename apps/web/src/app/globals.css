@@ -1005,6 +1005,16 @@ li + li {
   min-height: 54px;
 }
 
+.phone-profile-card__action.action-button--secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(247, 244, 239, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.phone-profile-card__action--centered {
+  text-align: center;
+}
+
 .profile-editor-overlay {
   position: fixed;
   inset: 0;
