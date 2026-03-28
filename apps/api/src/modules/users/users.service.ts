@@ -104,7 +104,9 @@ export async function listCurrentSiteOptions(): Promise<UserCurrentSiteOptionsRe
   ]);
 
   const items = [...sites, ...siteOthers]
-    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .map((value) =>
+      typeof value === "string" ? normalizeCurrentSite(value) ?? "" : ""
+    )
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index)
     .sort((left, right) => left.localeCompare(right));
@@ -385,7 +387,7 @@ export async function updateUserByLineUserId(
   }
 
   if ("currentSite" in input) {
-    updates["working_info.current_site"] = normalizeString(input.currentSite);
+    updates["working_info.current_site"] = normalizeCurrentSite(input.currentSite);
     updates["working_info.current_site_other"] = null;
   }
 
@@ -575,6 +577,16 @@ function normalizeString(value: string | null | undefined) {
 
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeCurrentSite(value: string | null | undefined) {
+  const normalized = normalizeString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.toUpperCase();
 }
 
 function escapeRegex(value: string) {

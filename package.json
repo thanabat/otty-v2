@@ -9,6 +9,7 @@
     "dev": "node ./scripts/dev.mjs",
     "dev:liff": "node ./scripts/dev-liff.mjs",
     "db:backfill:user-profile-fields": "node ./scripts/backfill-user-profile-fields.mjs",
+    "db:normalize:current-site": "node ./scripts/normalize-current-site.mjs",
     "dev:web": "npm run dev --workspace @otty/web",
     "dev:api": "npm run dev --workspace @otty/api",
     "build": "npm run build --workspaces --if-present",

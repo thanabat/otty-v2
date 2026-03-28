@@ -440,7 +440,7 @@ export function LiveProfilePage() {
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
-                        currentSite: event.target.value
+                        currentSite: event.target.value.toUpperCase()
                       }));
                       setIsCurrentSiteMenuOpen(true);
                     }}

@@ -124,6 +124,12 @@ To backfill new profile fields on the existing `users` collection without overwr
 npm run db:backfill:user-profile-fields
 ```
 
+To normalize existing `working_info.current_site` and `working_info.current_site_other` values to uppercase:
+
+```bash
+npm run db:normalize:current-site
+```
+
 ## Deployment Expectation
 
 Deploy the two apps as separate services:
