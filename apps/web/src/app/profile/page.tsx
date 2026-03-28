@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { LiveProfilePage } from "../../components/live-profile-page";
 
-export default function LegacyProfilePage() {
-  redirect("/dev/profile");
+export default function ProfilePage() {
+  return <LiveProfilePage />;
 }

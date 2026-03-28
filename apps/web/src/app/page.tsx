@@ -14,6 +14,15 @@ export default function HomePage() {
       </section>
 
       <section className="info-grid">
+        <Link className="nav-card" href="/profile">
+          <p className="eyebrow">Live Flow</p>
+          <h2>Open Profile</h2>
+          <p className="lead lead--compact">
+            เมื่อกดเข้า link นี้ ระบบจะเช็ก LINE login แล้วแสดง employee
+            profile จาก collection `users` ทันที
+          </p>
+        </Link>
+
         <Link className="nav-card" href="/dev">
           <p className="eyebrow">Development</p>
           <h2>Open Dev Routes</h2>
@@ -21,14 +30,6 @@ export default function HomePage() {
             รวม path ทดลองสำหรับ LIFF login และ profile lookup จาก MongoDB
           </p>
         </Link>
-
-        <article className="info-card">
-          <h2>Next Build Target</h2>
-          <p className="lead lead--compact">
-            จากจุดนี้คุณสามารถเริ่ม implement flow จริง เช่น auth module,
-            session, และ employee-facing pages โดยไม่ปะปนกับ prototype เดิม
-          </p>
-        </article>
       </section>
     </main>
   );

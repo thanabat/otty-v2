@@ -13,6 +13,18 @@ export interface UserWorkingInfo {
   referrer?: string | null;
 }
 
+export interface UserFieldItem {
+  key: string;
+  label: string;
+  value: string;
+}
+
+export interface UserSection {
+  key: string;
+  title: string;
+  items: UserFieldItem[];
+}
+
 export interface UserRecord {
   id: string;
   lineUserId?: string | null;
@@ -22,6 +34,7 @@ export interface UserRecord {
   updatedAt?: string | null;
   isActive: boolean;
   hasPurchasedTicket: boolean;
+  sections: UserSection[];
 }
 
 export interface UsersListResponse {

@@ -223,6 +223,7 @@ Use the current implementation to verify your LINE setup end to end.
 
 Useful local routes:
 
+- `/profile`: live flow that checks LINE login and renders the employee profile from MongoDB `users`
 - `/dev`: entry page for prototype flows used during development
 - `/dev/line`: Step 1 LIFF login check and LINE profile inspection
 - `/dev/profile`: Step 2 profile resolver backed by MongoDB `users`
