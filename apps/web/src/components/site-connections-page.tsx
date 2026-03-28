@@ -98,7 +98,7 @@ export function SiteConnectionsPage({
             <p className="lead lead--dark">{state.error ?? "Unknown error"}</p>
           </section>
 
-          <div className="button-row button-row--compact">
+          <div className="button-row button-row--compact button-row--toolbar">
             <Link
               className="action-button action-button--secondary-dark"
               href="/profile"
@@ -130,7 +130,7 @@ export function SiteConnectionsPage({
           ) : null}
         </section>
 
-        <div className="button-row button-row--compact">
+        <div className="button-row button-row--compact button-row--toolbar">
           <Link
             className="action-button action-button--secondary-dark"
             href="/profile"

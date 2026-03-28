@@ -304,7 +304,7 @@ export function UserWorkingExperiencesPage({
           </p>
         </section>
 
-        <div className="button-row button-row--compact button-row--split">
+        <div className="button-row button-row--compact button-row--split button-row--toolbar">
           <Link
             className="action-button action-button--secondary-dark"
             href={backHref}
