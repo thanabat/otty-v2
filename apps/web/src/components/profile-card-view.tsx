@@ -37,6 +37,7 @@ export function ProfileCardView({
     user.workingInfo?.currentSiteOther?.trim() ||
     "";
   const showVerifyBadge = Boolean(user.personalInfo?.pictureUrl);
+  const emergencyContacts = user.emergencyContacts ?? [];
 
   return (
     <section className="profile-spotlight">
@@ -108,6 +109,42 @@ export function ProfileCardView({
                       {user.personalInfo?.phone || "-"}
                     </span>
                   </div>
+                  {emergencyContacts.length > 0 ? (
+                    <div className="profile-detail-card__item">
+                      <span className="profile-detail-card__label">
+                        Emergency Contacts
+                      </span>
+                      <div className="profile-detail-card__avatar-row">
+                        {emergencyContacts.map((contact) => (
+                          <Link
+                            aria-label={
+                              contact.fullname
+                                ? `Open profile of ${contact.fullname}`
+                                : "Open emergency contact profile"
+                            }
+                            className="profile-detail-card__avatar-link"
+                            href={`/profile/${encodeURIComponent(contact.id)}`}
+                            key={contact.id}
+                            title={contact.fullname ?? contact.nickname ?? "Profile"}
+                          >
+                            {contact.pictureUrl ? (
+                              <img
+                                alt={contact.fullname ?? contact.nickname ?? "Emergency contact"}
+                                className="profile-detail-card__avatar"
+                                height={40}
+                                src={contact.pictureUrl}
+                                width={40}
+                              />
+                            ) : (
+                              <div className="profile-detail-card__avatar profile-detail-card__avatar--fallback">
+                                {(contact.nickname ?? contact.fullname ?? "U").slice(0, 1)}
+                              </div>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </section>
 

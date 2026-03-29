@@ -20,7 +20,11 @@ export function ProfileLoadingState({
 }: ProfileLoadingStateProps) {
   return (
     <main className="profile-stage">
-      <section className="profile-spotlight" aria-busy="true">
+      <section
+        aria-busy="true"
+        aria-label={`${eyebrow} ${title}. ${description}`}
+        className="profile-spotlight"
+      >
         <div className="profile-spotlight__glow" />
         <article className="phone-profile-card phone-profile-card--loading">
           <div className="phone-profile-card__media">
@@ -28,10 +32,11 @@ export function ProfileLoadingState({
           </div>
 
           <div className="phone-profile-card__content">
-            <div className="loading-copy">
-              <p className="eyebrow">{eyebrow}</p>
-              <h1>{title}</h1>
-              <p className="lead lead--dark">{description}</p>
+            <div className="loading-copy" aria-hidden="true">
+              <div className="loading-block loading-block--eyebrow" />
+              <div className="loading-block loading-block--hero-title" />
+              <div className="loading-block loading-block--hero-title loading-block--hero-title-short" />
+              <div className="loading-block loading-block--line loading-block--line-medium" />
             </div>
 
             <div className="phone-profile-card__footer">

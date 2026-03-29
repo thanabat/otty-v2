@@ -35,6 +35,13 @@ export interface UserWorkingExperienceInput {
   isCurrent: boolean;
 }
 
+export interface UserEmergencyContact {
+  id: string;
+  fullname?: string | null;
+  nickname?: string | null;
+  pictureUrl?: string | null;
+}
+
 export interface UserFieldItem {
   key: string;
   label: string;
@@ -52,6 +59,7 @@ export interface UserRecord {
   lineUserId?: string | null;
   personalInfo?: UserPersonalInfo;
   workingInfo?: UserWorkingInfo;
+  emergencyContacts: UserEmergencyContact[];
   workingExperiences: UserWorkingExperience[];
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -86,6 +94,7 @@ export interface UserReferrerCandidate {
   nickname?: string | null;
   fullname?: string | null;
   shortName?: string | null;
+  pictureUrl?: string | null;
 }
 
 export interface UserConnectionsResponse {
@@ -136,5 +145,6 @@ export interface UserProfileUpdateInput {
   title?: string | null;
   referrer?: string | null;
   referrerUserId?: string | null;
+  emergencyContactUserIds?: string[] | null;
   joiningYear?: number | null;
 }

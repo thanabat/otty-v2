@@ -46,6 +46,7 @@ const userSchema = new Schema(
       }
     },
     working_experiences: [workingExperienceSchema],
+    emergency_contact_user_ids: [String],
     created_at: Date,
     updated_at: Date,
     is_active: {

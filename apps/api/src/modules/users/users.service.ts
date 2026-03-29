@@ -27,7 +27,7 @@ export async function listUsers(limit: number): Promise<UsersListResponse> {
   ]);
 
   return {
-    items: items.map(serializeUser),
+    items: await serializeUsers(items),
     total,
     limit: normalizedLimit
   };
@@ -143,7 +143,8 @@ export async function listReferrerCandidates(): Promise<UserReferrerCandidatesRe
     {
       _id: 1,
       "personal_info.nickname": 1,
-      "personal_info.fullname": 1
+      "personal_info.fullname": 1,
+      "personal_info.picture_url": 1
     }
   )
     .sort({ "personal_info.nickname": 1, "personal_info.fullname": 1, _id: 1 })
@@ -153,6 +154,7 @@ export async function listReferrerCandidates(): Promise<UserReferrerCandidatesRe
         personal_info?: {
           nickname?: string | null;
           fullname?: string | null;
+          picture_url?: string | null;
         };
       }>
     >();
@@ -584,10 +586,11 @@ export async function updateUserByLineUserId(
   lineUserId: string,
   input: UserProfileUpdateInput
 ) {
-  const updates: Record<string, string | number | Date | null> = {
+  const updates: Record<string, unknown> = {
     updated_at: new Date()
   };
   const hasReferrerUserIdInput = "referrerUserId" in input;
+  const hasEmergencyContactsInput = "emergencyContactUserIds" in input;
   const normalizedReferrerUserId = hasReferrerUserIdInput
     ? normalizeObjectIdString(input.referrerUserId)
     : undefined;
@@ -665,6 +668,67 @@ export async function updateUserByLineUserId(
   if ("joiningYear" in input) {
     updates["working_info.joining_year"] =
       typeof input.joiningYear === "number" ? input.joiningYear : null;
+  }
+
+  if (hasEmergencyContactsInput) {
+    const currentUser = await UserModel.findOne(
+      {
+        line_user_id: lineUserId
+      },
+      {
+        _id: 1
+      }
+    ).lean<{ _id: mongoose.Types.ObjectId } | null>();
+
+    if (!currentUser) {
+      throw new HttpError({
+        statusCode: 404,
+        code: "UserNotFound",
+        message: "User was not found"
+      });
+    }
+
+    const normalizedEmergencyContactUserIds = normalizeObjectIdList(
+      input.emergencyContactUserIds ?? []
+    );
+
+    if (
+      normalizedEmergencyContactUserIds.some(
+        (id) => id === currentUser._id.toString()
+      )
+    ) {
+      throw new HttpError({
+        statusCode: 400,
+        code: "EmergencyContactSelfNotAllowed",
+        message: "Emergency contact cannot be the current user"
+      });
+    }
+
+    if (normalizedEmergencyContactUserIds.length > 0) {
+      const existingContacts = await UserModel.find(
+        {
+          _id: {
+            $in: normalizedEmergencyContactUserIds
+          }
+        },
+        {
+          _id: 1
+        }
+      ).lean<Array<{ _id: mongoose.Types.ObjectId }>>();
+
+      if (existingContacts.length !== normalizedEmergencyContactUserIds.length) {
+        throw new HttpError({
+          statusCode: 404,
+          code: "EmergencyContactNotFound",
+          message: "One or more emergency contacts were not found"
+        });
+      }
+    }
+
+    updates["emergency_contact_user_ids"] =
+      normalizedEmergencyContactUserIds.length > 0
+        ? normalizedEmergencyContactUserIds
+        : null;
   }
 
   const user = await UserModel.findOneAndUpdate(
@@ -825,8 +889,30 @@ export async function deleteWorkingExperienceByLineUserId(
   return saveAndSerializeUser(user);
 }
 
-function serializeUser(user: UserDocument): UserRecord {
+async function serializeUsers(users: UserDocument[]): Promise<UserRecord[]> {
+  const emergencyContactMap = await buildEmergencyContactMap(users);
+  return users.map((user) => serializeUserWithEmergencyContacts(user, emergencyContactMap));
+}
+
+async function serializeUser(user: UserDocument): Promise<UserRecord> {
+  const [serializedUser] = await serializeUsers([user]);
+  if (!serializedUser) {
+    throw new HttpError({
+      statusCode: 500,
+      code: "UserSerializationFailed",
+      message: "User serialization failed"
+    });
+  }
+
+  return serializedUser;
+}
+
+function serializeUserWithEmergencyContacts(
+  user: UserDocument,
+  emergencyContactMap: Map<string, UserRecord["emergencyContacts"][number]>
+): UserRecord {
   const sections = buildUserSections(user);
+  const emergencyContactIds = readEmergencyContactUserIds(user);
 
   return {
     id: user._id.toString(),
@@ -853,6 +939,11 @@ function serializeUser(user: UserDocument): UserRecord {
           referrerUserId: user.working_info.referrer_user_id ?? null
         }
       : undefined,
+    emergencyContacts: emergencyContactIds
+      .map((contactUserId) => emergencyContactMap.get(contactUserId) ?? null)
+      .filter(
+        (contact): contact is NonNullable<typeof contact> => Boolean(contact)
+      ),
     workingExperiences: Array.isArray(user.working_experiences)
       ? user.working_experiences.map((experience) => ({
           id:
@@ -904,6 +995,7 @@ function serializeReferrerCandidate(user: {
   personal_info?: {
     nickname?: string | null;
     fullname?: string | null;
+    picture_url?: string | null;
   };
 }): UserReferrerCandidate | null {
   const nickname = normalizeString(user.personal_info?.nickname);
@@ -918,7 +1010,8 @@ function serializeReferrerCandidate(user: {
     id: user._id.toString(),
     nickname,
     fullname,
-    shortName
+    shortName,
+    pictureUrl: normalizeString(user.personal_info?.picture_url)
   };
 }
 
@@ -954,6 +1047,83 @@ function normalizeObjectIdString(value?: string | null) {
   return mongoose.isValidObjectId(normalized) ? normalized : null;
 }
 
+function normalizeObjectIdList(values: string[] | null | undefined) {
+  const normalizedValues = Array.isArray(values) ? values : [];
+  const results: string[] = [];
+
+  for (const value of normalizedValues) {
+    const normalized = normalizeObjectIdString(value);
+
+    if (!normalized) {
+      throw new HttpError({
+        statusCode: 400,
+        code: "InvalidEmergencyContactUserId",
+        message: "Emergency contact user id must be a valid MongoDB ObjectId"
+      });
+    }
+
+    if (!results.includes(normalized)) {
+      results.push(normalized);
+    }
+  }
+
+  return results;
+}
+
+function readEmergencyContactUserIds(user: UserDocument) {
+  if (!Array.isArray(user.emergency_contact_user_ids)) {
+    return [];
+  }
+
+  return user.emergency_contact_user_ids
+    .map((value) => normalizeObjectIdString(value))
+    .filter((value): value is string => Boolean(value));
+}
+
+async function buildEmergencyContactMap(users: UserDocument[]) {
+  const ids = users.flatMap(readEmergencyContactUserIds);
+  const uniqueIds = [...new Set(ids)];
+
+  if (uniqueIds.length === 0) {
+    return new Map<string, UserRecord["emergencyContacts"][number]>();
+  }
+
+  const contacts = await UserModel.find(
+    {
+      _id: {
+        $in: uniqueIds
+      }
+    },
+    {
+      _id: 1,
+      "personal_info.fullname": 1,
+      "personal_info.nickname": 1,
+      "personal_info.picture_url": 1
+    }
+  ).lean<
+    Array<{
+      _id: mongoose.Types.ObjectId;
+      personal_info?: {
+        fullname?: string | null;
+        nickname?: string | null;
+        picture_url?: string | null;
+      };
+    }>
+  >();
+
+  return new Map(
+    contacts.map((contact) => [
+      contact._id.toString(),
+      {
+        id: contact._id.toString(),
+        fullname: normalizeString(contact.personal_info?.fullname),
+        nickname: normalizeString(contact.personal_info?.nickname),
+        pictureUrl: normalizeString(contact.personal_info?.picture_url)
+      }
+    ])
+  );
+}
+
 function buildUserSections(user: UserDocument) {
   const sections = [
     createSection("identity", "Identity", {
@@ -978,6 +1148,7 @@ function buildUserSections(user: UserDocument) {
     "personal_info",
     "working_info",
     "working_experiences",
+    "emergency_contact_user_ids",
     "created_at",
     "updated_at",
     "is_active",

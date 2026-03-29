@@ -39,6 +39,7 @@ type EditFormState = {
   title: string;
   referrer: string;
   referrerUserId: string;
+  emergencyContactUserIds: string[];
   joiningYear: string;
 };
 
@@ -51,7 +52,11 @@ export function LiveProfilePage() {
     UserReferrerCandidate[]
   >([]);
   const [isReferrerMenuOpen, setIsReferrerMenuOpen] = useState(false);
+  const [isEmergencyContactsMenuOpen, setIsEmergencyContactsMenuOpen] =
+    useState(false);
+  const [emergencyContactQuery, setEmergencyContactQuery] = useState("");
   const referrerFieldRef = useRef<HTMLDivElement | null>(null);
+  const emergencyContactsFieldRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<EditFormState>({
     fullname: "",
     nickname: "",
@@ -61,6 +66,7 @@ export function LiveProfilePage() {
     title: "",
     referrer: "",
     referrerUserId: "",
+    emergencyContactUserIds: [],
     joiningYear: ""
   });
 
@@ -177,6 +183,28 @@ export function LiveProfilePage() {
     };
   }, [isEditing, isReferrerMenuOpen]);
 
+  useEffect(() => {
+    if (!isEditing || !isEmergencyContactsMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!emergencyContactsFieldRef.current) {
+        return;
+      }
+
+      if (!emergencyContactsFieldRef.current.contains(event.target as Node)) {
+        setIsEmergencyContactsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isEditing, isEmergencyContactsMenuOpen]);
+
   const normalizedReferrerQuery = form.referrer.trim().toLowerCase();
   const filteredReferrerOptions = referrerCandidates
     .filter((item) =>
@@ -189,6 +217,33 @@ export function LiveProfilePage() {
         : true
     )
     .slice(0, 8);
+  const emergencyContactCandidates = referrerCandidates.filter(
+    (item) =>
+      item.id !== state.session?.user.id &&
+      !form.emergencyContactUserIds.includes(item.id)
+  );
+  const normalizedEmergencyContactQuery = emergencyContactQuery.trim().toLowerCase();
+  const filteredEmergencyContactOptions = emergencyContactCandidates
+    .filter((item) =>
+      normalizedEmergencyContactQuery
+        ? [
+            item.nickname ?? "",
+            item.shortName ?? "",
+            item.fullname ?? ""
+          ].some((value) =>
+            value.toLowerCase().includes(normalizedEmergencyContactQuery)
+          )
+        : true
+    )
+    .slice(0, 8);
+  const selectedEmergencyContacts = form.emergencyContactUserIds
+    .map(
+      (id) =>
+        referrerCandidates.find((item) => item.id === id) ??
+        state.session?.user.emergencyContacts.find((item) => item.id === id) ??
+        null
+    )
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   async function handleLogout() {
     await logoutLiff();
@@ -213,6 +268,7 @@ export function LiveProfilePage() {
         title: normalizeFormText(form.title),
         referrer: normalizeFormText(form.referrer),
         referrerUserId: normalizeFormText(form.referrerUserId),
+        emergencyContactUserIds: form.emergencyContactUserIds,
         joiningYear: normalizeJoiningYear(form.joiningYear)
       });
 
@@ -306,6 +362,8 @@ export function LiveProfilePage() {
                 setForm(createEditFormState(state.session!));
                 setSaveError(null);
                 setIsReferrerMenuOpen(false);
+                setIsEmergencyContactsMenuOpen(false);
+                setEmergencyContactQuery("");
                 setIsEditing(true);
               }}
               type="button"
@@ -497,6 +555,116 @@ export function LiveProfilePage() {
               </label>
 
               <label className="editor-field">
+                <span>Emergency Contact(s)</span>
+                <div className="combobox-field" ref={emergencyContactsFieldRef}>
+                  <input
+                    autoComplete="off"
+                    aria-autocomplete="list"
+                    aria-expanded={isEmergencyContactsMenuOpen}
+                    aria-label="Emergency Contacts"
+                    className="combobox-field__input"
+                    onChange={(event) => {
+                      setEmergencyContactQuery(event.target.value);
+                      setIsEmergencyContactsMenuOpen(true);
+                    }}
+                    onFocus={() => {
+                      setIsEmergencyContactsMenuOpen(true);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setIsEmergencyContactsMenuOpen(false);
+                      }
+                    }}
+                    placeholder="Search coworkers"
+                    role="combobox"
+                    type="search"
+                    value={emergencyContactQuery}
+                  />
+
+                  {isEmergencyContactsMenuOpen ? (
+                    <div className="combobox-field__menu" role="listbox">
+                      {filteredEmergencyContactOptions.length > 0 ? (
+                        filteredEmergencyContactOptions.map((item) => (
+                          <button
+                            className="combobox-field__option combobox-field__option--person"
+                            key={item.id}
+                            onClick={() => {
+                              setForm((current) => ({
+                                ...current,
+                                emergencyContactUserIds: [
+                                  ...current.emergencyContactUserIds,
+                                  item.id
+                                ]
+                              }));
+                              setEmergencyContactQuery("");
+                              setIsEmergencyContactsMenuOpen(false);
+                            }}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                            }}
+                            role="option"
+                            type="button"
+                          >
+                            <span className="combobox-field__person-name">
+                              {buildReferrerCandidateLabel(item)}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="combobox-field__empty">
+                          No matching coworkers found.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+
+                {selectedEmergencyContacts.length > 0 ? (
+                  <div className="selected-people-row">
+                    {selectedEmergencyContacts.map((contact) => (
+                      <div className="selected-person-chip" key={contact.id}>
+                        {contact.pictureUrl ? (
+                          <img
+                            alt={contact.fullname ?? contact.nickname ?? "Emergency contact"}
+                            className="selected-person-chip__avatar"
+                            height={30}
+                            src={contact.pictureUrl}
+                            width={30}
+                          />
+                        ) : (
+                          <div className="selected-person-chip__avatar selected-person-chip__avatar--fallback">
+                            {(contact.nickname ?? contact.fullname ?? "U").slice(0, 1)}
+                          </div>
+                        )}
+                        <span className="selected-person-chip__label">
+                          {buildReferrerCandidateLabel(contact)}
+                        </span>
+                        <button
+                          className="selected-person-chip__remove"
+                          onClick={() => {
+                            setForm((current) => ({
+                              ...current,
+                              emergencyContactUserIds:
+                                current.emergencyContactUserIds.filter(
+                                  (id) => id !== contact.id
+                                )
+                            }));
+                          }}
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="helper-text">
+                    If someone can&apos;t reach you, they can try these coworkers.
+                  </p>
+                )}
+              </label>
+
+              <label className="editor-field">
                 <span>Joining Year</span>
                 <input
                   inputMode="numeric"
@@ -525,6 +693,8 @@ export function LiveProfilePage() {
                   setIsEditing(false);
                   setSaveError(null);
                   setIsReferrerMenuOpen(false);
+                  setIsEmergencyContactsMenuOpen(false);
+                  setEmergencyContactQuery("");
                 }}
                 type="button"
               >
@@ -604,6 +774,9 @@ function createEditFormState(session: LiffLoginResponse): EditFormState {
     title: session.user.workingInfo?.title ?? "",
     referrer: session.user.workingInfo?.referrer ?? "",
     referrerUserId: session.user.workingInfo?.referrerUserId ?? "",
+    emergencyContactUserIds: session.user.emergencyContacts.map(
+      (contact) => contact.id
+    ),
     joiningYear: session.user.workingInfo?.joiningYear
       ? String(session.user.workingInfo.joiningYear)
       : ""
@@ -640,7 +813,11 @@ async function fetchReferrerOptions() {
   return payload.items;
 }
 
-function buildReferrerCandidateLabel(candidate: UserReferrerCandidate) {
+function buildReferrerCandidateLabel(candidate: {
+  nickname?: string | null;
+  shortName?: string | null;
+  fullname?: string | null;
+}) {
   const nickname = candidate.nickname?.trim() ?? "";
   const shortName = candidate.shortName?.trim() ?? "";
 
